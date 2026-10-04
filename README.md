@@ -1,4 +1,4 @@
-# 4coder_byp [![badge](https://github.com/B-Y-P/4coder_byp/actions/workflows/main.yml/badge.svg)](https://github.com/B-Y-P/4coder_byp/releases/)
+
 My personal [4coder](https://github.com/4coder-community/4cc/releases/tag/latest) custom layer
 
 ```sh
@@ -35,7 +35,4 @@ build release
  - [PortableBuildTools](https://github.com/Data-Oriented-House/PortableBuildTools) provides a simple GUI to do the same
 
 </br>
-
-If all goes well, running `4ed.exe` will look something like this
 ---
-![4coder_byp example](https://github.com/user-attachments/assets/b738fa4a-488a-42f1-bf59-b6096e4b3406)
