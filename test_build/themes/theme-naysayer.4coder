@@ -1,0 +1,69 @@
+
+defcolor_back              = 0xFF062626; // bg for the editor
+defcolor_margin            = 0xFF143234;
+defcolor_margin_hover      = 0xFF213F41;
+defcolor_margin_active     = 0xFF2E4C4E;
+defcolor_list_item         = {defcolor_margin, defcolor_back};
+defcolor_list_item_hover   = {defcolor_margin_hover, defcolor_margin};
+defcolor_list_item_active  = {defcolor_margin_active, defcolor_margin_active};
+defcolor_pop1              = 0xFF8EC07C; // names in the lister color
+defcolor_pop2              = 0xFFFF0000; // color of the key combinations in the lister
+defcolor_bar               = 0xFFaAaAaA; // bar bg color
+defcolor_bar_active        = 0xFFA8A8A8; // no idea
+defcolor_base              = 0xFF000000; // bar txt color
+
+// Buffer coloring
+
+defcolor_text_default      = 0xFFd4bf9e; //0xFFD2B58D
+defcolor_cursor            = {0xFFFFFFFF, 0xFFFFFFFF};
+defcolor_mark              = 0x70FFFFFF;
+defcolor_at_cursor         = 0xFF0C0C0C;
+defcolor_highlight_cursor_line = 0xFF4C546A;
+
+defcolor_highlight         = 0xFFdc7575; // search highlight bg color
+defcolor_at_highlight      = 0xFFFFFFFF; // search highlight txt color
+
+defcolor_paste             = 0xFFFFBB00;
+defcolor_undo              = 0xFF80005D;
+
+defcolor_highlight_junk    = 0x80500000;
+defcolor_highlight_white   = 0xFF003A3A;
+
+defcolor_back_cycle        = {defcolor_back};
+defcolor_text_cycle        = {defcolor_text_default};
+
+defcolor_line_numbers_back = 0xFF082628;
+defcolor_line_numbers_text = 0xFF082628;
+
+// Code
+
+defcolor_keyword           = 0xFFc3d6e0; // language keywords (e.g. if, while...)
+
+defcolor_constant			    = 0xFF7ad0c6;
+defcolor_str_constant      = 0xff2ca198;
+defcolor_char_constant     = defcolor_str_constant;
+defcolor_int_constant      = 0xFFDE825B;
+defcolor_float_constant    = defcolor_int_constant;
+defcolor_bool_constant     = defcolor_constant;
+defcolor_include           = defcolor_str_constant;
+defcolor_preproc           = 0xFF86E08F;
+defcolor_special_character = 0xFFFF0000;
+defcolor_ghost_character   = 0xFF8B7D6C;
+
+defcolor_comment           = 0xFF67CD5D;
+defcolor_comment_pop       = {0xff2ab34f, 0xFFdb2828};
+
+// QOL colours
+defcolor_function          = 0xffe8fdff;
+defcolor_type              = 0xFF86E08f;
+defcolor_macro             = 0xffffffff;
+defcolor_enum              = 0xffb7d0da;
+defcolor_global            = defcolor_text_default;
+defcolor_primitive         = defcolor_keyword;
+defcolor_struct            = defcolor_keyword;
+defcolor_non_text          = defcolor_text_default;
+defcolor_operator          = defcolor_non_text;
+defcolor_control           = defcolor_keyword;
+// Old names
+defcolor_function_name     = defcolor_function;
+defcolor_type_name         = defcolor_type;
