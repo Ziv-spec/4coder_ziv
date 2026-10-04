@@ -108,13 +108,13 @@ character_predicate_from_function(Character_Predicate_Function *func){
       v[bit_index] = func((u8)i);
     }
     predicate.b[byte_index] = ((v[0] << 0) |
-                               (v[1] << 1) |
-                               (v[2] << 2) |
-                               (v[3] << 3) |
-                               (v[4] << 4) |
-                               (v[5] << 5) |
-                               (v[6] << 6) |
-                               (v[7] << 7));
+                                 (v[1] << 1) |
+                                 (v[2] << 2) |
+                                 (v[3] << 3) |
+                                 (v[4] << 4) |
+                                 (v[5] << 5) |
+                                 (v[6] << 6) |
+                                 (v[7] << 7));
     byte_index += 1;
   }
   return(predicate);
@@ -312,8 +312,10 @@ buffer_side(Application_Links *app, Buffer_ID buffer, Side side){
   return(range_side(buffer_range(app, buffer), side));
 }
 
-// overidden by 4coder_vim_helper.cpp
-function Range_i64 get_view_range(Application_Links *app, View_ID view);
+function Range_i64
+get_view_range(Application_Links *app, View_ID view){
+  return(Ii64(view_get_cursor_pos(app, view), view_get_mark_pos(app, view)));
+}
 
 function void
 set_view_range(Application_Links *app, View_ID view, Range_i64 range){
@@ -725,7 +727,7 @@ seek_string_forward(Application_Links *app, Buffer_ID buffer, i64 pos, i64 end, 
   for (;;){
     match = buffer_seek_string(app, buffer, needle, Scan_Forward, (i32)match.range.first);
     if (HasFlag(match.flags, StringMatch_CaseSensitive) ||
-        match.buffer != buffer || match.range.first >= end) break;
+          match.buffer != buffer || match.range.first >= end) break;
   }
   if (match.range.first < end && match.buffer == buffer){
     *result = match.range.first;
@@ -742,7 +744,7 @@ seek_string_backward(Application_Links *app, Buffer_ID buffer, i64 pos, i64 min,
   for (;;){
     match = buffer_seek_string(app, buffer, needle, Scan_Backward, match.range.first);
     if (HasFlag(match.flags, StringMatch_CaseSensitive) ||
-        match.buffer != buffer || match.range.first < min) break;
+          match.buffer != buffer || match.range.first < min) break;
   }
   if (match.range.first >= min && match.buffer == buffer){
     *result = match.range.first;
@@ -1555,11 +1557,11 @@ query_user_general(Application_Links *app, Query_Bar *bar, b32 force_number, Str
     }
 
     if (in.event.kind == InputEventKind_KeyStroke &&
-        (in.event.key.code == KeyCode_Return || in.event.key.code == KeyCode_Tab)){
+          (in.event.key.code == KeyCode_Return || in.event.key.code == KeyCode_Tab)){
       break;
     }
     else if (in.event.kind == InputEventKind_KeyStroke &&
-             in.event.key.code == KeyCode_Backspace){
+               in.event.key.code == KeyCode_Backspace){
       bar->string = backspace_utf8(bar->string);
     }
     else if (good_insert){
@@ -1759,9 +1761,9 @@ open_view(Application_Links *app, View_ID view_location, View_Split_Position pos
     Panel_ID panel_id = view_get_panel(app, view_location);
     if (panel_id != 0){
       Dimension split = (position == ViewSplit_Left ||
-                         position == ViewSplit_Right)?Dimension_X:Dimension_Y;
+                           position == ViewSplit_Right)?Dimension_X:Dimension_Y;
       Side side = (position == ViewSplit_Left ||
-                   position == ViewSplit_Top)?Side_Min:Side_Max;
+                     position == ViewSplit_Top)?Side_Min:Side_Max;
       if (panel_split(app, panel_id, split)){
         Panel_ID new_panel_id = panel_get_child(app, panel_id, side);
         if (new_panel_id != 0){
@@ -2298,7 +2300,7 @@ view_set_split(Application_Links *app, View_ID view, View_Split_Kind kind, f32 t
         if (min_child_id != 0){
           b32 panel_is_min = (min_child_id == panel_id);
           Panel_Split_Kind panel_kind = ((kind == ViewSplitKind_Ratio)?
-                                         (panel_is_min?PanelSplitKind_Ratio_Min:PanelSplitKind_Ratio_Max):
+                                           (panel_is_min?PanelSplitKind_Ratio_Min:PanelSplitKind_Ratio_Max):
                                          (panel_is_min?PanelSplitKind_FixedPixels_Min:PanelSplitKind_FixedPixels_Max));
           result = panel_set_split(app, parent_panel_id, panel_kind, t);
         }
@@ -2372,7 +2374,7 @@ find_nest_side(Application_Links *app, Buffer_ID buffer, i64 pos,
   b32 balanced = HasFlag(flags, FindNest_Balanced);
   if (balanced){
     if ((delim == NestDelim_Open && scan == Scan_Forward) ||
-        (delim == NestDelim_Close && scan == Scan_Backward)){
+          (delim == NestDelim_Close && scan == Scan_Backward)){
       balanced = false;
     }
   }
@@ -2436,8 +2438,8 @@ find_surrounding_nest(Application_Links *app, Buffer_ID buffer, i64 pos,
   Range_i64 range = {};
   if (find_nest_side(app, buffer, pos-1, flags|FindNest_Balanced,
                      Scan_Backward, NestDelim_Open, &range.start) &&
-      find_nest_side(app, buffer, pos, flags|FindNest_Balanced|FindNest_EndOfToken,
-                     Scan_Forward, NestDelim_Close, &range.end)){
+        find_nest_side(app, buffer, pos, flags|FindNest_Balanced|FindNest_EndOfToken,
+                       Scan_Forward, NestDelim_Close, &range.end)){
     *out = range;
     result = true;
   }

@@ -565,9 +565,9 @@ union SNode{
 #define zdll_push_back_NP_(f,l,n,next,prev) ((f==0)?(n->next=n->prev=0,f=l=n):(n->prev=l,n->next=0,l->next=n,l=n))
 #define zdll_remove_back_NP_(f,l,next,prev) ((f==l)?(f=l=0):(l->prev->next=0,l=l->prev))
 #define zdll_remove_NP_(f,l,n,next,prev)       \
-  ((l==n)?(zdll_remove_back_NP_(f,l,next,prev))  \
-   :(f==n)?(zdll_remove_back_NP_(l,f,prev,next)) \
-   :       (dll_remove_NP_(n,n,next,prev)))
+((l==n)?(zdll_remove_back_NP_(f,l,next,prev))  \
+:(f==n)?(zdll_remove_back_NP_(l,f,prev,next)) \
+:       (dll_remove_NP_(n,n,next,prev)))
 
 #define zdll_push_back(f,l,n) zdll_push_back_NP_((f),(l),(n),next,prev)
 #define zdll_push_front(f,l,n) zdll_push_back_NP_((l),(f),(n),prev,next)
@@ -576,7 +576,7 @@ union SNode{
 #define zdll_remove(f,l,n) zdll_remove_NP_((f),(l),(n),next,prev)
 
 #define zdll_assert_good(T,f) Stmnt( if (f != 0){ Assert(f->prev == 0); \
-                                    for(T *p_ = f; p_ != 0; p_ = p_->next){ Assert(p_->prev == 0 || p_->prev->next == p_); Assert(p_->next == 0 || p_->next->prev == p_); }  } )
+for(T *p_ = f; p_ != 0; p_ = p_->next){ Assert(p_->prev == 0 || p_->prev->next == p_); Assert(p_->next == 0 || p_->next->prev == p_); }  } )
 
 ////////////////////////////////
 
@@ -1437,14 +1437,14 @@ struct Thread_Context{
   Arena_Node *used_first;
   Arena_Node *used_last;
   Arena_Node *free_arenas;
-
+  
   Base_Allocator *prof_allocator;
   Profile_ID prof_id_counter;
   Arena prof_arena;
   Profile_Record *prof_first;
   Profile_Record *prof_last;
   i32 prof_record_count;
-
+  
   void *user_data;
 };
 
@@ -1452,7 +1452,7 @@ struct Scratch_Block{
   Thread_Context *tctx;
   Arena *arena;
   Temp_Memory temp;
-
+  
   Scratch_Block(struct Thread_Context *tctx);
   Scratch_Block(struct Thread_Context *tctx, Arena *a1);
   Scratch_Block(struct Thread_Context *tctx, Arena *a1, Arena *a2);

@@ -37,7 +37,7 @@ function void
 lister_fill_buffers(Application_Links *app, Lister *lister){
   Buffer_ID viewed_buffers[16];
   i32 viewed_buffer_count = 0;
-
+  
   // List currently viewed buffers
   for (View_ID view = get_view_next(app, 0, Access_Always);
        view != 0;
@@ -51,7 +51,7 @@ lister_fill_buffers(Application_Links *app, Lister *lister){
     viewed_buffers[viewed_buffer_count++] = new_buffer_id;
     skip0:;
   }
-
+  
   // Regular Buffers
   for (Buffer_ID buffer = get_buffer_next(app, 0, Access_Always);
        buffer != 0;
@@ -66,7 +66,7 @@ lister_fill_buffers(Application_Links *app, Lister *lister){
     }
     skip1:;
   }
-
+  
   // Buffers Starting with *
   for (Buffer_ID buffer = get_buffer_next(app, 0, Access_Always);
        buffer != 0;
@@ -81,7 +81,7 @@ lister_fill_buffers(Application_Links *app, Lister *lister){
     }
     skip2:;
   }
-
+  
   // Buffers That Are Open in Views
   for (i32 i = 0; i < viewed_buffer_count; i += 1){
     generate_all_buffers_list__output_buffer(app, lister, viewed_buffers[i]);
@@ -102,7 +102,7 @@ lister_fill_commands(Application_Links *app, Lister *lister, Command_Lister_Stat
       case CommandLister_Bindings:
       {
         Command_Trigger_List triggers = map_get_triggers_recursive(lister->arena, status_rule->mapping, status_rule->map_id, proc);
-
+        
         List_String_Const_u8 list = {};
         for (Command_Trigger *node = triggers.first;
              node != 0;
@@ -112,11 +112,11 @@ lister_fill_commands(Application_Links *app, Lister *lister, Command_Lister_Stat
             string_list_push(lister->arena, &list, string_u8_litexpr(" "));
           }
         }
-
+        
         status = string_list_flatten(lister->arena, list);
       }break;
     }
-
+    
     lister_add_item(lister, SCu8(fcoder_metacmd_table[i].name), status, (void*)proc, 0);
   }
 }
@@ -124,7 +124,7 @@ lister_fill_commands(Application_Links *app, Lister *lister, Command_Lister_Stat
 function void
 lister_fill_themes(Application_Links *app, Lister *lister){
   lister_add_item(lister, string_u8_litexpr("4coder"), string_u8_empty, (void*)&default_color_table, 0);
-
+  
   for (Color_Table_Node *node = global_theme_list.first;
        node != 0;
        node = node->next){
@@ -136,7 +136,7 @@ function void
 lister_fill_prj_cmd(Application_Links *app, Lister *lister, Variable_Handle prj_var){
   Variable_Handle cmd_list_var = vars_read_key(prj_var, vars_save_string_lit("commands"));
   String_ID os_id = vars_save_string_lit(OS_NAME);
-
+  
   for (Variable_Handle cmd = vars_first_child(cmd_list_var);
        !vars_is_nil(cmd);
        cmd = vars_next_sibling(cmd)){
@@ -196,11 +196,11 @@ get_command_from_user(Application_Links *app, String_Const_u8 query, Command_Lis
   Lister_Block lister(app, scratch);
   lister_set_query(lister, query);
   lister_set_default_handlers(lister);
-
+  
   lister_fill_commands(app, lister, status_rule);
-
+  
   Lister_Result l_result = run_lister(app, lister);
-
+  
   Custom_Command_Function *result = 0;
   if (!l_result.canceled){
     result = (Custom_Command_Function*)l_result.user_data;
@@ -216,11 +216,11 @@ get_color_table_from_user(Application_Links *app, String_Const_u8 query){
   Lister_Block lister(app, scratch);
   lister_set_query(lister, query);
   lister_set_default_handlers(lister);
-
+  
   lister_fill_themes(app, lister);
-
+  
   Lister_Result l_result = run_lister(app, lister);
-
+  
   Color_Table *result = 0;
   if (!l_result.canceled){
     result = (Color_Table*)l_result.user_data;
@@ -291,7 +291,7 @@ lister__backspace_text_field__file_path(Application_Links *app){
         String_Const_u8 new_key = string_front_of_path(text_field);
         lister_set_key(lister, new_key);
       }
-
+      
       lister->item_index = 0;
       lister_zero_scroll(lister);
       lister_update_filtered_list(app, lister);
@@ -302,7 +302,7 @@ lister__backspace_text_field__file_path(Application_Links *app){
 function void
 generate_hot_directory_file_list(Application_Links *app, Lister *lister){
   Scratch_Block scratch(app, lister->arena);
-
+  
   Temp_Memory temp = begin_temp(lister->arena);
   String_Const_u8 hot = push_hot_directory(app, lister->arena);
   if (!character_is_slash(string_get_character(hot, hot.size - 1))){
@@ -310,14 +310,14 @@ generate_hot_directory_file_list(Application_Links *app, Lister *lister){
   }
   lister_set_text_field(lister, hot);
   lister_set_key(lister, string_front_of_path(hot));
-
+  
   File_List file_list = system_get_file_list(scratch, hot);
   end_temp(temp);
-
+  
   File_Info **one_past_last = file_list.infos + file_list.count;
-
+  
   lister_begin_new_item_set(app, lister);
-
+  
   hot = push_hot_directory(app, lister->arena);
   push_align(lister->arena, 8);
   if (hot.str != 0){
@@ -330,7 +330,7 @@ generate_hot_directory_file_list(Application_Links *app, Lister *lister){
       String_Const_u8 file_name = push_u8_stringf(lister->arena, "%S/", (**info).file_name);
       lister_add_item(lister, lister_prealloced(file_name), empty_string_prealloced, file_name.str, 0);
     }
-
+    
     for (File_Info **info = file_list.infos;
          info < one_past_last;
          info += 1){
@@ -338,9 +338,9 @@ generate_hot_directory_file_list(Application_Links *app, Lister *lister){
       String_Const_u8 file_name = push_string_copy(lister->arena, (**info).file_name);
       char *is_loaded = "";
       char *status_flag = "";
-
+      
       Buffer_ID buffer = {};
-
+      
       {
         Temp_Memory path_temp = begin_temp(lister->arena);
         List_String_Const_u8 list = {};
@@ -350,7 +350,7 @@ generate_hot_directory_file_list(Application_Links *app, Lister *lister){
         buffer = get_buffer_by_file_name(app, full_file_path, Access_Always);
         end_temp(path_temp);
       }
-
+      
       if (buffer != 0){
         is_loaded = "LOADED";
         Dirty_State dirty = buffer_get_dirty_state(app, buffer);
@@ -381,9 +381,9 @@ get_file_name_from_user(Application_Links *app, Arena *arena, String_Const_u8 qu
   handlers.refresh = generate_hot_directory_file_list;
   handlers.write_character = lister__write_character__file_path;
   handlers.backspace = lister__backspace_text_field__file_path;
-
+  
   Lister_Result l_result = run_lister_with_refresh_handler(app, arena, query, handlers);
-
+  
   File_Name_Result result = {};
   result.canceled = l_result.canceled;
   if (!l_result.canceled){
@@ -394,7 +394,7 @@ get_file_name_from_user(Application_Links *app, Arena *arena, String_Const_u8 qu
       result.is_folder = character_is_slash(string_get_character(name, name.size - 1));
     }
     result.file_name_in_text_field = string_front_of_path(l_result.text_field);
-
+    
     String_Const_u8 path = {};
     if (l_result.user_data == 0 && result.file_name_in_text_field.size == 0 && l_result.text_field.size > 0){
       result.file_name_in_text_field = string_front_folder_of_path(l_result.text_field);
@@ -408,7 +408,7 @@ get_file_name_from_user(Application_Links *app, Arena *arena, String_Const_u8 qu
     }
     result.path_in_text_field = path;
   }
-
+  
   return(result);
 }
 
@@ -433,20 +433,20 @@ do_buffer_kill_user_check(Application_Links *app, Buffer_ID buffer, View_ID view
   lister_choice(scratch, &list, "(N)o"  , "", KeyCode_N, SureToKill_No);
   lister_choice(scratch, &list, "(Y)es" , "", KeyCode_Y, SureToKill_Yes);
   lister_choice(scratch, &list, "(S)ave", "", KeyCode_S, SureToKill_Save);
-
+  
   Lister_Choice *choice = get_choice_from_user(app, "There are unsaved changes, close anyway?", list);
-
+  
   b32 do_kill = false;
   if (choice != 0){
     switch (choice->user_data){
       case SureToKill_No:
       {}break;
-
+      
       case SureToKill_Yes:
       {
         do_kill = true;
       }break;
-
+      
       case SureToKill_Save:
       {
         String_Const_u8 file_name = push_buffer_file_name(app, scratch, buffer);
@@ -463,7 +463,7 @@ do_buffer_kill_user_check(Application_Links *app, Buffer_ID buffer, View_ID view
       }break;
     }
   }
-
+  
   return(do_kill);
 }
 
@@ -475,23 +475,23 @@ do_4coder_close_user_check(Application_Links *app, View_ID view){
   lister_choice(scratch, &list, "(Y)es" , "", KeyCode_Y, SureToKill_Yes);
   lister_choice(scratch, &list, "(S)ave all and close", "",
                 KeyCode_S, SureToKill_Save);
-
+  
 #define M "There are one or more buffers with unsave changes, close anyway?"
   Lister_Choice *choice = get_choice_from_user(app, M, list);
 #undef M
-
+  
   b32 do_exit = false;
   if (choice != 0){
     switch (choice->user_data){
       case SureToKill_No:
       {}break;
-
+      
       case SureToKill_Yes:
       {
         allow_immediate_close_without_checking_for_changes = true;
         do_exit = true;
       }break;
-
+      
       case SureToKill_Save:
       {
         save_all_dirty_buffers(app);
@@ -500,7 +500,7 @@ do_4coder_close_user_check(Application_Links *app, View_ID view){
       }break;
     }
   }
-
+  
   return(do_exit);
 }
 
@@ -540,16 +540,16 @@ query_create_folder(Application_Links *app, String_Const_u8 folder_name){
   Lister_Choice_List list = {};
   lister_choice(scratch, &list, "(N)o"  , "", KeyCode_N, SureToKill_No);
   lister_choice(scratch, &list, "(Y)es" , "", KeyCode_Y, SureToKill_Yes);
-
+  
   String_Const_u8 message = push_u8_stringf(scratch, "Create the folder %S?", folder_name);
   Lister_Choice *choice = get_choice_from_user(app, message, list);
-
+  
   b32 did_create_folder = false;
   if (choice != 0){
     switch (choice->user_data){
       case SureToCreateFolder_No:
       {}break;
-
+      
       case SureToCreateFolder_Yes:
       {
         String_Const_u8 hot = push_hot_directory(app, scratch);
@@ -566,7 +566,7 @@ query_create_folder(Application_Links *app, String_Const_u8 folder_name){
       }break;
     }
   }
-
+  
   return(did_create_folder);
 }
 
@@ -577,7 +577,7 @@ activate_open_or_new__generic(Application_Links *app, View_ID view,
                               String_Const_u8 path, String_Const_u8 file_name, b32 is_folder,
                               Buffer_Create_Flag flags){
   Lister_Activation_Code result = 0;
-
+  
   if (file_name.size == 0){
 #define M "Zero length file_name passed to activate_open_or_new__generic\n"
     print_message(app, string_u8_litexpr(M));
@@ -603,7 +603,7 @@ activate_open_or_new__generic(Application_Links *app, View_ID view,
       result = ListerActivation_Finished;
     }
   }
-
+  
   return(result);
 }
 
@@ -615,21 +615,21 @@ CUSTOM_DOC("Interactively open a file out of the file system.")
     View_ID view = get_this_ctx_view(app, Access_Always);
     File_Name_Result result = get_file_name_from_user(app, scratch, "Open:", view);
     if (result.canceled) break;
-
+    
     String_Const_u8 file_name = result.file_name_activated;
     if (file_name.size == 0){
       file_name = result.file_name_in_text_field;
     }
     if (file_name.size == 0) break;
-
+    
     String_Const_u8 path = result.path_in_text_field;
     String_Const_u8 full_file_name = push_u8_stringf(scratch, "%S/%S", path, file_name);
-
+    
     if (result.is_folder){
       set_hot_directory(app, full_file_name);
       continue;
     }
-
+    
     if (character_is_slash(file_name.str[file_name.size - 1])){
       File_Attributes attribs = system_quick_file_attributes(scratch, full_file_name);
       if (HasFlag(attribs.flags, FileAttribute_IsDirectory)){
@@ -646,7 +646,7 @@ CUSTOM_DOC("Interactively open a file out of the file system.")
       }
       break;
     }
-
+    
     Buffer_ID buffer = create_buffer(app, full_file_name, 0);
     if (buffer != 0){
       view_set_buffer(app, view, buffer, 0);
@@ -664,7 +664,7 @@ CUSTOM_DOC("Interactively creates a new file.")
     File_Name_Result result = get_file_name_from_user(app, scratch, "New:",
                                                       view);
     if (result.canceled) break;
-
+    
     // NOTE(allen): file_name from the text field always
     // unless this is a folder or a mouse click.
     String_Const_u8 file_name = result.file_name_in_text_field;
@@ -672,16 +672,16 @@ CUSTOM_DOC("Interactively creates a new file.")
       file_name = result.file_name_activated;
     }
     if (file_name.size == 0) break;
-
+    
     String_Const_u8 path = result.path_in_text_field;
     String_Const_u8 full_file_name =
       push_u8_stringf(scratch, "%S/%S", path, file_name);
-
+    
     if (result.is_folder){
       set_hot_directory(app, full_file_name);
       continue;
     }
-
+    
     if (character_is_slash(file_name.str[file_name.size - 1])){
       File_Attributes attribs = system_quick_file_attributes(scratch, full_file_name);
       if (HasFlag(attribs.flags, FileAttribute_IsDirectory)){
@@ -698,7 +698,7 @@ CUSTOM_DOC("Interactively creates a new file.")
       }
       break;
     }
-
+    
     Buffer_Create_Flag flags = BufferCreate_AlwaysNew;
     Buffer_ID buffer = create_buffer(app, full_file_name, flags);
     if (buffer != 0){
@@ -716,19 +716,19 @@ CUSTOM_DOC("Interactively opens a file.")
     View_ID view = get_this_ctx_view(app, Access_Always);
     File_Name_Result result = get_file_name_from_user(app, scratch, "Open:", view);
     if (result.canceled) break;
-
+    
     String_Const_u8 file_name = result.file_name_activated;
     if (file_name.size == 0) break;
-
+    
     String_Const_u8 path = result.path_in_text_field;
     String_Const_u8 full_file_name =
       push_u8_stringf(scratch, "%S/%S", path, file_name);
-
+    
     if (result.is_folder){
       set_hot_directory(app, full_file_name);
       continue;
     }
-
+    
     if (character_is_slash(file_name.str[file_name.size - 1])){
       File_Attributes attribs = system_quick_file_attributes(scratch, full_file_name);
       if (HasFlag(attribs.flags, FileAttribute_IsDirectory)){
@@ -741,7 +741,7 @@ CUSTOM_DOC("Interactively opens a file.")
       }
       break;
     }
-
+    
     Buffer_Create_Flag flags = BufferCreate_NeverNew;
     Buffer_ID buffer = create_buffer(app, full_file_name, flags);
     if (buffer != 0){

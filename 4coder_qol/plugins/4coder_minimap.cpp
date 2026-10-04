@@ -44,22 +44,22 @@ struct MM_Context{
   Rect_f32 outer;
   Rect_f32 region;
   Range_i64 range;
-
+  
   custom_paint_text_color_type *core_paint_text_color;
   Token *hint;
   Token_Array tokens;
   Vec2_f32 s_p0;
   Vec2_f32 s_str;
-
+  
   ARGB_Color cl_nest;
   MM_Node *head;
   MM_Node *tail;
   MM_Node *stack;
-
+  
   View_ID  hot_view;
   Rect_f32 hot_rect;
   f32      hot_delta;
-
+  
   // Cached to minimize calls to Layout_Function*
   i64       _line;  // the further line is from xy, the more expensive view_relative_box_of_pos / view_pos_at_relative_xy
   Vec2_f32  _rel;   // incrementally accumulate into rel to keep line and xy close
@@ -140,14 +140,14 @@ function void MM_paint_text_color(Application_Links *app, Text_Layout_ID layout_
   if (g_mm_ctx.layout == 0){ return paint_text_color(app, layout_id, range, color); }
   if (g_mm_ctx.layout != layout_id){ return g_mm_ctx.core_paint_text_color(app, layout_id, range, color); }
   if (!range_overlap(range, g_mm_ctx.range)){ return; }
-
+  
   b32 use_hint = (g_mm_ctx.hint && g_mm_ctx.hint->pos == range.min);
   Token *t = (use_hint ? g_mm_ctx.hint : token_from_pos(&g_mm_ctx.tokens, range.min));
   if (t == 0 || range.max <= t->pos || t->kind == TokenBaseKind_Whitespace){ return; }
-
+  
   while (g_mm_ctx.head  && range_contains(g_mm_ctx._range, g_mm_ctx.head->p0)){ MM_nest_open(app); }
   while (g_mm_ctx.stack && range_contains(g_mm_ctx._range, g_mm_ctx.stack->p1)){ MM_nest_close(app); }
-
+  
   i64 pos = t->pos;
   Vec2_f32 p = MM_get_xy(app, pos);
   for (i64 i=range.min; i < range.max+1; i++){  // bail if there are somehow more lines than chars
@@ -158,26 +158,44 @@ function void MM_paint_text_color(Application_Links *app, Text_Layout_ID layout_
         draw_rectangle_fcolor(app, rect, 0.f, fcolor_change_alpha(fcolor_argb(color), 0.8f));
       }
     }
-
+    
     if (range.max <= end){ break; }  // Which ends first: the visual line, or the token?
     MM_get_xy(app, g_mm_ctx._range.max+1);  // force a line_range cache invalidation
-
+    
     pos = g_mm_ctx._range.min;
     p = g_mm_ctx._p0;
   }
 }
 
 function Text_Layout_ID MM_begin(Application_Links *app, Arena *arena, View_ID view, Face_ID face, Buffer_ID buffer, Token_Array tokens, Rect_f32 region, Range_i64 visible_range, ARGB_Color cl_nest){
-  if (!def_get_config_b32(vars_save_string_lit("minimap_enabled")) ||
-      def_get_config_b32(vars_save_string_lit("minimap_only_active")) && view != get_active_view(app, Access_Always)){
+  
+  if (!def_get_config_b32(vars_save_string_lit("minimap_enabled")) || (def_get_config_b32(vars_save_string_lit("minimap_only_active")) && 
+                                                                       view != get_active_view(app, Access_Always))) {
     return 0;
   }
+  
   g_mm_ctx.stack = g_mm_ctx.head = g_mm_ctx.tail = 0;
-
+  
   Face_Metrics metrics = get_face_metrics(app, face);
   f32 width = Min(0.3f*rect_width(region), 15.f*metrics.normal_advance);
   Rect_f32 outer = rect_split_left_right_neg(region, width).b;
-
+  
+  if (def_get_config_b32(vars_save_string_lit("minimap_only_on_hover"))) {
+    Vec2_f32 p = V2f32(get_mouse_state(app).p);
+    if (!rect_contains_point(region, p)) 
+      return 0; 
+    
+    b32 hovering_on_mm = rect_contains_point(outer, p);
+    if (!hovering_on_mm) {
+      g_use_minimap_hover = false;
+      return 0;
+    }
+    else if (g_hover_dt < HOVER_TIME) {
+      g_use_minimap_hover = true;
+      return 0;
+    }
+  }
+  
   f32 minimap_line_height = 4.f;
   f32 minimap_char_width  = 1.1f;
   i64  buf_line_count = buffer_get_line_count(app, buffer);
@@ -185,14 +203,14 @@ function Text_Layout_ID MM_begin(Application_Links *app, Arena *arena, View_ID v
   f32   mm_line_count = rect_height(region) / minimap_line_height;
   mm_line_count = Min(mm_line_count, f32(buf_line_count));
   i64 mm_scroll_line_count = Max(0, buf_line_count - i64(mm_line_count));
-
+  
   Buffer_Scroll scroll = view_get_buffer_scroll(app, view);
   f32 y  = metrics.line_height * f32(scroll.position.line_number) + scroll.position.pixel_shift.y;
   f32 y1 = metrics.line_height * f32(buf_line_count) - 0.5f*rect_height(region);
-
+  
   i64 top_line = 1 + i64(clamp(0.f, y/y1, 1.f) * f32(mm_scroll_line_count));
   Buffer_Point point = {top_line, V2f32(0,0)};
-
+  
   g_mm_ctx.view   = view;
   g_mm_ctx.face   = face;
   g_mm_ctx.buffer = buffer;
@@ -209,12 +227,12 @@ function Text_Layout_ID MM_begin(Application_Links *app, Arena *arena, View_ID v
   g_mm_ctx._rel   = V2f32(0,0);
   g_mm_ctx._range = Ii64(0,0);
   g_mm_ctx.cl_nest = cl_nest;
-
+  
   if (paint_text_color != MM_paint_text_color){
     g_mm_ctx.core_paint_text_color = paint_text_color;
     paint_text_color = MM_paint_text_color;
   }
-
+  
   i64 la = get_line_number_from_pos(app, buffer, visible_range.min+0);
   i64 lb = get_line_number_from_pos(app, buffer, visible_range.max-1);
   Rect_f32 r = rect_union(MM_get_line(app, la),
@@ -225,7 +243,7 @@ function Text_Layout_ID MM_begin(Application_Links *app, Arena *arena, View_ID v
   draw_rectangle_fcolor(app, r,     0, fcolor_change_alpha(fcolor_id(defcolor_highlight_cursor_line), 0.9f));
   draw_rectangle_fcolor(app, ra,    0, fcolor_change_alpha(fcolor_id(defcolor_cursor), 0.2f));
   draw_rectangle_fcolor(app, rb,    0, fcolor_change_alpha(fcolor_id(defcolor_mark), 0.2f));
-
+  
   if (def_get_config_b32(vars_save_string_lit("minimap_render_nests"))){
     code_index_lock();
     Code_Index_File *file = code_index_get_file(buffer);
@@ -235,9 +253,9 @@ function Text_Layout_ID MM_begin(Application_Links *app, Arena *arena, View_ID v
     }
     code_index_unlock();
   }
-
+  
   while (g_mm_ctx.head && !range_contains(g_mm_ctx.range, g_mm_ctx.head->p0)){ MM_nest_open(app); }
-
+  
   if (def_get_config_b32(vars_save_string_lit("minimap_scrollable"))){
     Mouse_State m = get_mouse_state(app);
     if (g_mm_ctx.hot_view == 0 && rect_contains_point(outer, V2f32(m.p)) && m.press_l){
@@ -245,7 +263,7 @@ function Text_Layout_ID MM_begin(Application_Links *app, Arena *arena, View_ID v
       g_mm_ctx.hot_rect  = outer;
       g_mm_ctx.hot_delta = rect_contains_point(r, V2f32(m.p)) ? f32(m.p.y) - rect_center(r).y : 0.f;
     }
-
+    
     if (g_mm_ctx.hot_view == view){
       if (m.l == false){ g_mm_ctx.hot_view = 0; }
       f32 dy = 0.5f*minimap_line_height*view_line_count;
@@ -260,7 +278,7 @@ function Text_Layout_ID MM_begin(Application_Links *app, Arena *arena, View_ID v
       }
     }
   }
-
+  
   return g_mm_ctx.layout;
 }
 

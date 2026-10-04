@@ -418,7 +418,7 @@ draw_line_number_margin(Application_Links *app, View_ID view_id, Buffer_ID buffe
   }
 
   for (;line_number < one_past_last_line_number &&
-       line_number < line_count;){
+         line_number < line_count;){
     Range_f32 line_y = text_layout_line_on_screen(app, text_layout_id, line_number);
     Vec2_f32 p = V2f32(margin.x0, line_y.min);
 
@@ -771,7 +771,7 @@ draw_paren_highlight(Application_Links *app, Buffer_ID buffer, Text_Layout_ID te
       if (token_it_dec_all(&it)){
         token = token_it_read(&it);
         if (token->kind == TokenBaseKind_ParenClose &&
-            pos == token->pos + token->size){
+              pos == token->pos + token->size){
           pos = token->pos;
         }
       }

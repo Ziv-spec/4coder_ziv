@@ -1,4 +1,5 @@
 
+/* 
 CUSTOM_COMMAND_MC_GLOBAL_SIG(qol_seek_char_query)
 CUSTOM_DOC("[QOL] This one just works in multi-cursor mode")
 {
@@ -8,6 +9,7 @@ CUSTOM_DOC("[QOL] This one just works in multi-cursor mode")
   qol_target_char = c;
   view_enqueue_command_function(app, view, qol_char_forward);  // allow running on all multi cursors
 }
+ */
 
 CUSTOM_COMMAND_MC_GLOBAL_SIG(toggle_function_tooltip)
 CUSTOM_DOC("[QOL] Toggles the visibility of the function tooltips")
@@ -49,14 +51,14 @@ CUSTOM_DOC("[QOL] Jump to the definition in the code index matching an identifie
 {
   View_ID view = get_active_view(app, Access_Visible);
   if (view == 0){ return; }
-
+  
   Scratch_Block scratch(app);
   String_Const_u8 query = push_token_or_word_under_active_cursor(app, scratch);
-
+  
   code_index_lock();
   defer{ code_index_unlock(); };
   Code_Index_Note_List* list = code_index__list_from_string(query);
-
+  
   // Prefer function definitions over declarations
   for (Code_Index_Note *note = list->first; note != 0; note = note->next_in_hash){
     if (!string_match(query, note->text)){ continue; }
@@ -69,7 +71,7 @@ CUSTOM_DOC("[QOL] Jump to the definition in the code index matching an identifie
       }
     }
   }
-
+  
   for (Code_Index_Note *note = list->first; note != 0; note = note->next_in_hash){
     if (!string_match(query, note->text)){ continue; }
     point_stack_push_view_cursor(app, view);
@@ -161,7 +163,7 @@ CUSTOM_DOC("[QOL] Reloads the project.4coder file")
   View_ID views[32];
   Buffer_Scroll scrolls[32];
   i64 count = 0;
-
+  
   for (View_ID view = get_view_next(app, 0, Access_Always);
        view != 0;
        view = get_view_next(app, view, Access_Always)){
@@ -169,14 +171,14 @@ CUSTOM_DOC("[QOL] Reloads the project.4coder file")
     views[idx] = view;
     scrolls[idx] = view_get_buffer_scroll(app, view);
   }
-
+  
   for (Buffer_ID buffer = get_buffer_next(app, 0, Access_Always);
        buffer != 0;
        buffer = get_buffer_next(app, buffer, Access_Always)){
     if (buffer_has_name_with_star(app, buffer)){ continue; }
     buffer_reopen(app, buffer, 0);
   }
-
+  
   for (i64 i = 0; i < count; i += 1){
     view_set_buffer_scroll(app, views[i], scrolls[i], SetBufferScroll_NoCursorChange);
   }
@@ -215,20 +217,20 @@ function i64
 qol_boundary_ctrl_motion(Application_Links *app, Buffer_ID buffer, Side side, Scan_Direction dir, i64 pos){
   i64 size = buffer_get_size(app, buffer);
   i64 p0 = pos;
-
+  
   String_Match m0 = buffer_seek_character_class(app, buffer, &character_predicate_non_whitespace, dir, pos);
   if (buffer == m0.buffer){
     pos = (dir == Scan_Forward ? m0.range.max-1 : m0.range.min);
   }else{
     return (dir == Scan_Forward ? size : 0);
   }
-
+  
   u8 ch = buffer_get_char(app, buffer, pos);
   bool is_non_word = ch == 0 || character_predicate_check_character(character_predicate_non_word, ch);
-
+  
   Character_Predicate pred = (is_non_word ? character_predicate_word : character_predicate_non_word);
   pred = character_predicate_or(&character_predicate_whitespace, &pred);
-
+  
   String_Match m1 = buffer_seek_character_class(app, buffer, &pred, dir, pos);
   if (buffer == m1.buffer){
     i64 p2 = (dir == Scan_Forward ? m1.range.max : m1.range.min) - dir;
@@ -295,6 +297,7 @@ qol_seek_char(Application_Links *app, Buffer_ID buffer, Scan_Direction direction
   Range_i64 range = get_line_pos_range(app, buffer, line);
   range.max += 1;
   String_Const_u8 string = push_buffer_range(app, scratch, buffer, range);
+  if (string.str == NULL || string.size == 0)  return 0;
   i64 pos = start_pos;
   while(range_contains(range, pos)){
     pos += direction;
@@ -333,7 +336,7 @@ CUSTOM_DOC("[QOL] Toggles the column for bumping and selects hovered char")
     i64 pos = view_get_cursor_pos(app, view);
     qol_col_cursor = buffer_compute_cursor(app, buffer, seek_pos(pos));
     qol_col_buffer = buffer;
-
+    
     if (mc_context.active){
       for_mc (node, mc_context.cursors){
         Buffer_Cursor cursor = buffer_compute_cursor(app, buffer, seek_pos(node->cursor_pos));
@@ -342,9 +345,9 @@ CUSTOM_DOC("[QOL] Toggles the column for bumping and selects hovered char")
         }
       }
     }
-
+    
     qol_target_char = buffer_get_char(app, buffer, qol_col_cursor.pos);
-    vim_state.params.seek = {qol_target_char, VIM_Inclusive, Scan_Backward};
+    qol_col_cursor = buffer_compute_cursor(app, buffer, seek_pos(pos));
   }
   else{
     qol_col_cursor.pos = -1;
@@ -358,16 +361,16 @@ CUSTOM_DOC("[QOL] Writes as many spaces needed for bumping to column")
   if (qol_col_cursor.pos > 0){
     View_ID view = get_active_view(app, Access_ReadVisible);
     Buffer_ID buffer = view_get_buffer(app, view, Access_ReadVisible);
-
+    
     qol_col_cursor = buffer_compute_cursor(app, buffer, seek_line_col(qol_col_cursor.line, qol_col_cursor.col));
-
+    
     i64 pos = view_get_cursor_pos(app, view);
     i64 line = get_line_number_from_pos(app, buffer, pos);
     f32 col_x = view_relative_xy_of_pos(app, view, line, qol_col_cursor.pos).x;
     f32 cur_x = view_relative_xy_of_pos(app, view, line, pos).x;
     Face_ID face = get_face_id(app, buffer);
     f32 space_advance = get_face_metrics(app, face).space_advance;
-
+    
     i64 N = i64((col_x - cur_x) / space_advance);
     if (N < 0){ N = 1; }
     String_Const_u8 spaces = string_const_u8_push(scratch, N);
@@ -402,7 +405,7 @@ CUSTOM_DOC("[QOL] Either goto_jump_at_cursor or writes newline and completes {} 
 {
   View_ID view = get_active_view(app, Access_ReadVisible);
   Buffer_ID buffer = view_get_buffer(app, view, Access_ReadWriteVisible);
-
+  
   if (buffer == 0){
     buffer = view_get_buffer(app, view, Access_ReadVisible);
     if (buffer != 0){
@@ -434,18 +437,18 @@ qol_move_selection(Application_Links *app, Scan_Direction direction){
   i64 cursor_pos = view_get_cursor_pos(app, view);
   i64 mark_pos = view_get_mark_pos(app, view);
   b32 is_up = direction == Scan_Backward;
-
+  
   Range_i64 range = range_union(get_line_range_from_pos(app, buffer, cursor_pos),
                                 get_line_range_from_pos(app, buffer, mark_pos));
   i64 line0 = get_line_number_from_pos(app, buffer, range.min);
   i64 line1 = get_line_number_from_pos(app, buffer, range.max);
   if ((is_up && line0 <= 1) || (!is_up && line1 >= max_line)){ return; }
   range.max += 1 + (buffer_get_char(app, buffer, range.max) == '\r');
-
+  
   i64 target_pos = (is_up ?
                     get_line_pos_range(app, buffer, line0 - 1).min :
                     get_line_pos_range(app, buffer, line1 + 1).max + 1);
-
+  
   Scratch_Block scratch(app);
   String_Const_u8 string_selection = push_buffer_range(app, scratch, buffer, range);
   History_Group group = history_group_begin(app, buffer);
@@ -481,16 +484,16 @@ qol_find_divider(Application_Links *app, Scan_Direction direction){
   Buffer_ID buffer = view_get_buffer(app, view, Access_ReadVisible);
   Token_Array tokens = get_token_array_from_buffer(app, buffer);
   if (tokens.tokens == 0){ return; }
-
+  
   i64 pos = view_get_cursor_pos(app, view);
   Token_Iterator_Array it = token_iterator_pos(buffer, &tokens, pos);
   for (;;){
     Scratch_Block scratch(app);
     Token *token = token_it_read(&it);
-
+    
     b32 correct_direction = ((token->pos < pos && direction == Scan_Backward) ||
                              (token->pos > pos && direction == Scan_Forward));
-
+    
     String_Const_u8 tail = {};
     if (correct_direction && token_it_check_and_get_lexeme(app, scratch, &it, TokenBaseKind_Comment, &tail)){
       String_Const_u8 match = string_u8_litexpr("//-");
@@ -500,7 +503,7 @@ qol_find_divider(Application_Links *app, Scan_Direction direction){
         return;
       }
     }
-
+    
     b32 has_next = (direction == Scan_Forward ?
                     token_it_inc_non_whitespace(&it) :
                     token_it_dec_non_whitespace(&it));
@@ -524,14 +527,14 @@ function void
 qol_render_kill_rect(Application_Links *app, Frame_Info frame_info, View_ID view){
   Render_Caller_Function *custom_render = (Render_Caller_Function*)get_custom_hook(app, HookID_RenderCaller);
   custom_render(app, frame_info, view);
-
+  
   Rect_f32 view_rect = view_get_screen_rect(app, view);
   Rect_f32 region = view_get_buffer_region(app, view);
-
+  
   Face_ID face_id = get_face_id(app, 0);
   Face_Metrics metrics = get_face_metrics(app, face_id);
   f32 line_height = metrics.line_height;
-
+  
   Buffer_ID buffer = view_get_buffer(app, view, Access_ReadVisible);
   Buffer_Scroll scroll = view_get_buffer_scroll(app, view);
   Buffer_Point buffer_point = scroll.position;
@@ -541,7 +544,7 @@ qol_render_kill_rect(Application_Links *app, Frame_Info frame_info, View_ID view
   Rect_f32 r1 = text_layout_character_on_screen(app, text_layout_id, range.max);
   Rect_f32 rect = rect_union(r0, r1);
   FColor f_color = fcolor_id(defcolor_highlight);
-
+  
   String_Const_u8 prompt = string_u8_litexpr("Kill Rectangle: Yes: (Y) No: (N)");
   Vec2_f32 p = rect.p0 - V2f32(0, line_height);
   f32 advance = get_string_advance(app, face_id, prompt);
@@ -561,12 +564,12 @@ CUSTOM_DOC("[QOL] Prompt deletion of text in the cursor/mark rectangle")
   if (buffer == 0){
     return qol_block_apply(app, view, view_get_buffer(app, view, Access_Always), range, qol_range_fade);
   }
-
+  
   View_Context ctx = view_current_context(app, view);
   ctx.render_caller = qol_render_kill_rect;
   ctx.hides_buffer = false;
   View_Context_Block ctx_block(app, view, &ctx);
-
+  
   for (;;){
     User_Input in = get_next_input(app, EventPropertyGroup_Any, EventProperty_Escape);
     if (in.abort){ break; }
@@ -594,7 +597,7 @@ CUSTOM_DOC("[QOL] response to a try-exit event")
 {
   User_Input input = get_current_input(app);
   if (!match_core_code(&input, CoreCode_TryExit)){ return; }
-
+  
   b32 do_exit = true;
   if (!allow_immediate_close_without_checking_for_changes &&
       qol_dirty_buffer_count(app) != 0){

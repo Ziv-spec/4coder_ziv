@@ -6,28 +6,28 @@ qol_isearch(Application_Links *app, Scan_Direction scan, i64 first_pos, String_C
   View_ID view = get_active_view(app, Access_ReadVisible);
   Buffer_ID buffer = view_get_buffer(app, view, Access_ReadVisible);
   if (!buffer_exists(app, buffer)){ return; }
-
+  
   Query_Bar_Group group(app);
   Query_Bar bar = {};
   if (!use_bot_string && start_query_bar(app, &bar, 0) == 0){ return; }
-
+  
   Vec2_f32 old_margin = {};
   Vec2_f32 old_push_in = {};
   view_get_camera_bounds(app, view, &old_margin, &old_push_in);
-
+  
   Vec2_f32 margin = V2f32(old_margin.x, clamp_bot(200.f, old_margin.y));
   view_set_camera_bounds(app, view, margin, old_push_in);
-
+  
   u8 bar_string_space[256];
   bar.string = SCu8(bar_string_space, query_init.size);
   block_copy(bar.string.str, query_init.str, query_init.size);
   u64 match_size = bar.string.size;
   i64 pos = first_pos;
-
+  
   Range_i64 range = buffer_range(app, buffer);
   View_Context ctx = view_current_context(app, view);
   Command_Map *map = mapping_get_map(ctx.mapping, default_get_map_id(app, view));
-
+  
   User_Input in = {};
   for (;;){
     bar.prompt = query_prompt[scan != Scan_Forward];
@@ -35,16 +35,15 @@ qol_isearch(Application_Links *app, Scan_Direction scan, i64 first_pos, String_C
       qol_bot_text_set(bar.prompt);
       qol_bot_text_append(bar.string);
     }
-    vim_register_copy(&vim_registers.search, bar.string);
     isearch__update_highlight(app, view, Ii64_size(pos, match_size));
-
+    
     in = get_next_input(app, EventPropertyGroup_Any, EventProperty_Escape);
     if (in.abort){
       break;
     }
-
+    
     String_Const_u8 string = to_writable(&in);
-
+    
     b32 string_change = false;
     if (match_key_code(&in, KeyCode_Return) ||
         match_key_code(&in, KeyCode_Tab)){
@@ -75,7 +74,7 @@ qol_isearch(Application_Links *app, Scan_Direction scan, i64 first_pos, String_C
                     backspace_utf8(bar.string));
       string_change = (bar.string.size < old_string.size);
     }
-
+    
     b32 do_scan_action = false;
     b32 do_scroll_wheel = false;
     Scan_Direction change_scan = scan;
@@ -116,7 +115,7 @@ qol_isearch(Application_Links *app, Scan_Direction scan, i64 first_pos, String_C
         }
       }
     }
-
+    
     if (string_change || do_scan_action){
       scan = change_scan;
       i64 new_pos = 0;
@@ -132,9 +131,9 @@ qol_isearch(Application_Links *app, Scan_Direction scan, i64 first_pos, String_C
       mouse_wheel_scroll(app);
     }
   }
-
+  
   view_disable_highlight_range(app, view);
-
+  
   if (in.abort){
     u64 size = bar.string.size;
     size = clamp_top(size, sizeof(previous_isearch_query) - 1);
@@ -142,7 +141,7 @@ qol_isearch(Application_Links *app, Scan_Direction scan, i64 first_pos, String_C
     previous_isearch_query[size] = 0;
     view_set_cursor_and_preferred_x(app, view, seek_pos(first_pos));
   }
-
+  
   view_set_camera_bounds(app, view, old_margin, old_push_in);
 }
 

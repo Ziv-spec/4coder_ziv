@@ -1,5 +1,5 @@
 version(2);
-project_name = "4coder BYP";
+project_name = "4coder ZIV";
 
 clear_blank_lines = true;
 indent_with_tabs = false;
@@ -14,8 +14,8 @@ patterns = { "*.c", "*.cpp", "*.h", "*.hpp", "*.m", "*.mm", "*.bat", "*.sh", "*.
 blacklist_patterns = { ".*", "4coder_cpp_lexer_test.cpp" };
 paths = {
   { .path=".",             .recursive=false, .relative=true, },
-  { .path="./4coder_vim/", .recursive=true,  .relative=true, },
-  { .path="./4coder_qol/", .recursive=true,  .relative=true, }
+  { .path="./4coder_qol/", .recursive=true,  .relative=true, },
+  { .path="./4coder_zk/", .recursive=true,  .relative=true, }
 };
 
 load_paths = {
@@ -35,8 +35,8 @@ commands = {
 };
 
 fkey_command = {
+  .F1 = "build",
   .F2 = "run",
   .F3 = "lexer",
-  .F5 = "build",
   .F9 = "debug",
 };
