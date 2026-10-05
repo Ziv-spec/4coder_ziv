@@ -1,6 +1,6 @@
 
+#include "../4coder_zk/4coder_zk_microsoft_crazyness.h"
 
-// #include "../4coder_zk/4coder_zk_microsoft_crazyness.h"
 #include "4coder_default_include.h"
 
 //#define SNIPPET_EXPANSION "path/to/snippet.inc"
@@ -9,6 +9,7 @@
 
 #include "4coder_qol_lister.h"
 #include "4coder_qol_bview.h"
+
 function Lister_Result zk_run_lister(Application_Links *app, Lister *lister);
 #define run_lister zk_run_lister
 
@@ -173,10 +174,11 @@ void custom_layer_init(Application_Links *app){
 // [x] Show Mini Map on mouse hover (also created a hover time to activate)
 // [ ] zk_go_to_definition_same_panel
 //   [x] uses fleury logic for intuitive function/type finding
-//   [ ] make that you can jump to folder in string & in #include <windows.h> you can jump to it
+//   [x] make that you can jump to folder in string & in #include <windows.h> you can jump to it
 //   [ ] fix bug with get next intitive node
 // [ ] search
-//
+// [x] add selection range to cursor
+// [ ] code peek fix it pleasee (it's shit)
 //
 // Review the behavior of 'quick_swap_buffer' I remember I Had problems with it at some point
 // yeah. So the beahvior that I don't like is that when I am jumping around many files, one after

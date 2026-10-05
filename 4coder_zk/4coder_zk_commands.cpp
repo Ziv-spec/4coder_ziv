@@ -1,40 +1,4 @@
 
-//~ Mouse related commands
-
-CUSTOM_COMMAND_SIG(zk_click_set_cursor_if_lbutton_or_code_peek)
-CUSTOM_DOC("Tracks mouse state for code peek, click to set cursor position")
-{
-
-  View_ID view = get_active_view(app, Access_ReadVisible);
-  Mouse_State mouse = get_mouse_state(app);
-  Rect_f32 rect = view_get_screen_rect(app, view);
-  if (rect_contains_point(rect, V2f32(mouse.p))){
-    i64 pos = view_pos_from_xy(app, view, V2f32(mouse.p));
-    if (mouse.l) {
-      view_set_cursor_and_preferred_x(app, view, seek_pos(pos));
-    }
-    else {
-      /*
-      Buffer_ID buffer = view_get_buffer(app, view, Access_Always);
-
-      // code peek
-      Token *token = get_token_from_pos(app, buffer, pos);
-      if (token != 0 && token->size > 0 && token->kind == TokenBaseKind_Identifier) {
-      g_use_code_peek_hover = 1;
-      }
-      else {
-      g_use_code_peek_hover = 0;
-      }
-      */
-    }
-  }
-  else {
-    g_use_code_peek_hover = 0;
-  }
-  no_mark_snap_to_cursor(app, view);
-  set_next_rewrite(app, view, Rewrite_NoChange);
-}
-
 //~ Jump Definition Commands
 
 function void
@@ -96,6 +60,113 @@ CUSTOM_DOC("List all definitions in the code index and jump to one chosen by the
   }
 }
 
+
+#if OS_WINDOWS
+function String_Const_u8
+zk_msvc_sdk_include_path(Arena *arena) {
+
+  // NOTE(ziv): when writing microsoft_crazyness.h Jon was likely concerned
+  // with .lib files his compiler had to link against. I don't care about
+  // those, I just care about the include folder with all the .h files I can
+  // match against. So this function is modfied to give me the Include folder
+  wchar_t *windows_sdk_include_root = find_windows_kit_root();
+  u64 size = wcslen(windows_sdk_include_root);
+
+  u8 *out  = push_array(arena, u8, size);
+  u64 out_size = 0;
+  {
+    u64 cap = size;
+
+    Character_Consume_Result consume;
+    for (int i = 0; i < size; i += consume.inc, cap -= consume.inc) {
+      consume = utf16_consume((u16 *)&windows_sdk_include_root[i], cap);
+      out_size += utf8_write((u8 *)&out[out_size], consume.codepoint);
+    }
+  }
+  free(windows_sdk_include_root);
+
+  return SCu8(out, out_size);
+}
+
+function void
+zk_find_file_in_folder_recursive__inner(Arena *arena, String_Const_u8 base, String_Const_u8 file, String_Const_u8 *out, int depth) {
+  Assert(arena && out);
+
+  if (depth >= 32) return; // just to feel safe
+
+  File_List list = system_get_file_list(arena, base);
+  for (File_Info **ptr = list.infos, **end = list.infos + list.count;
+       ptr < end;
+       ptr += 1){
+    File_Info *info = *ptr;
+    String_Const_u8 name = info->file_name;
+    if (HasFlag(info->attributes.flags, FileAttribute_IsDirectory)){
+
+      String_Const_u8 inner = push_u8_stringf(arena, "%S/%S", base, name);
+      zk_find_file_in_folder_recursive__inner(arena, inner, file, out, ++depth);
+    }
+    else if (string_match(name, file, StringMatch_CaseInsensitive)) {
+
+      u8 *dst = out->str;
+      block_copy(dst, base.str, base.size); dst += base.size;
+      block_copy(dst, "\\", 1); dst += 1;
+      block_copy(dst, file.str, file.size); dst+= file.size;
+      out->size = dst - out->str;
+
+      return;
+    }
+  }
+}
+
+function String_Const_u8
+zk_find_file_in_folder_recursive(Arena *arena, String_Const_u8 base, String_Const_u8 file) {
+
+  u8 out[256]; u64 size = 0;
+  String_Const_u8 found_path = { out, size };
+
+  Temp_Memory temp = begin_temp(arena);
+  zk_find_file_in_folder_recursive__inner(arena, base, file, &found_path, 0);
+  end_temp(temp);
+
+  if (found_path.size == 0) return String_Const_u8{0};
+  // copy result to an actuall buffer
+
+  u8 *result = push_array(arena, u8, found_path.size);
+  block_copy(result, found_path.str, found_path.size);
+
+  return String_Const_u8{ result, found_path.size };
+
+}
+#endif
+
+function String_Const_u8
+string_remove_last_folder_and_slash(String_Const_u8 path) {
+  String_Const_u8 result = string_remove_last_folder(path);
+  if (character_is_slash(string_get_character(result, result.size - 1))) {
+    result = string_chop(result, 1);
+  }
+  return result;
+}
+
+internal void
+zk_open_other_panel_to_location(Application_Links *app, Buffer_ID buffer, i64 pos)
+{
+  View_ID view = get_active_view(app, Access_Always);
+  Rect_f32 region = view_get_buffer_region(app, view);
+  f32 view_height = rect_height(region);
+  view = get_next_view_looped_primary_panels(app, view, Access_Always);
+
+  view_set_buffer(app, view, buffer, 0);
+  i64 line_number = get_line_number_from_pos(app, buffer, pos);
+  Buffer_Scroll scroll = view_get_buffer_scroll(app, view);
+  scroll.position.line_number = line_number;
+  scroll.target.line_number = line_number;
+  scroll.position.pixel_shift.y = scroll.target.pixel_shift.y = -view_height*0.5f;
+  view_set_buffer_scroll(app, view, scroll, SetBufferScroll_SnapCursorIntoView);
+  view_set_cursor(app, view, seek_pos(pos));
+  view_set_mark(app, view, seek_pos(pos));
+}
+
 function Code_Index_Note *
 zk_find_next_intuitive_note(Buffer_ID buffer, Code_Index_Note *first_note, String_Const_u8 iden_string, i64 pos) {
   if (!first_note) return NULL;
@@ -118,7 +189,6 @@ zk_find_next_intuitive_note(Buffer_ID buffer, Code_Index_Note *first_note, Strin
       do_save_next_note = true;
       last_best_note = note;
     }
-
   }
 
   best_note = (best_note != NULL) ? best_note : last_best_note;
@@ -155,65 +225,6 @@ zk_find_next_intuitive_note(Buffer_ID buffer, Code_Index_Note *first_note, Strin
   return NULL; // Nothing was found
 }
 
-internal void
-zk_open_other_panel_to_location(Application_Links *app, Buffer_ID buffer, i64 pos)
-{
-  View_ID view = get_active_view(app, Access_Always);
-  Rect_f32 region = view_get_buffer_region(app, view);
-  f32 view_height = rect_height(region);
-  view = get_next_view_looped_primary_panels(app, view, Access_Always);
-
-  view_set_buffer(app, view, buffer, 0);
-  i64 line_number = get_line_number_from_pos(app, buffer, pos);
-  Buffer_Scroll scroll = view_get_buffer_scroll(app, view);
-  scroll.position.line_number = line_number;
-  scroll.target.line_number = line_number;
-  scroll.position.pixel_shift.y = scroll.target.pixel_shift.y = -view_height*0.5f;
-  view_set_buffer_scroll(app, view, scroll, SetBufferScroll_SnapCursorIntoView);
-  view_set_cursor(app, view, seek_pos(pos));
-  view_set_mark(app, view, seek_pos(pos));
-}
-
-function String_Const_u8
-string_remove_last_folder_and_slash(String_Const_u8 path) {
-  String_Const_u8 result = string_remove_last_folder(path);
-  if (character_is_slash(string_get_character(result, result.size - 1))) {
-    result = string_chop(result, 1);
-  }
-  return result;
-}
-
-/*
-#if OS_WINDOWS
-function String_Const_u8
-zk_msvc_sdk_include_path(Arena *arena) {
-
-// NOTE(ziv): when writing microsoft_crazyness.h Jon was likely concerned
-// with .lib files his compiler had to link against. I don't care about
-// those, I just care about the include folder with all the .h files I can
-// match against. So this function is modfied to give me the Include folder
-wchar_t *windows_sdk_include_root = find_windows_kit_root();
-
-u64 size = wcslen(windows_sdk_include_root);
-u8 *out  = (u8 *)malloc(size); // push_array(arena, u8, size);
-u64 out_size = 0;
-{
-u64 cap = size;
-
-Character_Consume_Result consume;
-for (int i = 0; i < size; i += consume.inc, cap -= consume.inc) {
-consume = utf16_consume((u16 *)&windows_sdk_include_root[i], cap);
-out_size += utf8_write((u8 *)&out[out_size], consume.codepoint);
-}
-}
-free(windows_sdk_include_root);
-
-String_Const_u8 windows_include_root_u8 = SCu8(out, out_size);
-return windows_include_root_u8;
-}
-#endif
-*/
-
 function void
 zk_go_to_definition_at_cursor(Application_Links *app, b32 same_panel) {
   ProfileScope(app, "[ZK] Jump to definition at cursor");
@@ -233,115 +244,92 @@ zk_go_to_definition_at_cursor(Application_Links *app, b32 same_panel) {
         token->kind == TokenBaseKind_Whitespace) return;
   String_Const_u8 query = push_buffer_range(app, scratch, buffer, Ii64(token));
 
+  if (token->kind != TokenBaseKind_LiteralString) {
+    code_index_lock();
+    Code_Index_Note_List* list = code_index__list_from_string(query);
+    Code_Index_Note *note = zk_find_next_intuitive_note(buffer, list->first, query, pos);
+    if (note) {
+      point_stack_push_view_cursor(app, view);
+      if (same_panel) jump_to_location(app, view,  note->file->buffer, note->pos.first);
+      else zk_open_other_panel_to_location(app, note->file->buffer, note->pos.first);
+    }
+    code_index_unlock();
+  }
+
+
   // Opening file buffer from string
-  if (token->kind == TokenBaseKind_LiteralString) {
+  // TODO(ziv): Figure out a way to make this not langauge specific
+  // like allowing to open odin packages if they are in the system
 
-    b32 is_quotes     = '\"'== query.str[0] && query.str[query.size-1] == '\"';
-    b32 is_alt_quotes = '<' == query.str[0] && query.str[query.size-1] == '>';
-    if (!is_quotes && !is_alt_quotes) return;
+  b32 is_quotes     = '\"'== query.str[0] && query.str[query.size-1] == '\"';
+  b32 is_alt_quotes = '<' == query.str[0] && query.str[query.size-1] == '>';
+  if (!is_quotes && !is_alt_quotes) return;
 
-    // if in project, just switch to the already opened buffer
-    String_Const_u8 filename = SCu8(query.str+1, query.size-2);
-    if (view_open_file(app, view, filename, true)) {
-      view_set_active(app, view);
-      return;
-    }
-
-    String_Const_u8 full_path = {0};
-    if (is_quotes && query.size > 2) {
-
-      // not in project, assume base directory from file you request from
-      String_Const_u8 base_path = string_remove_last_folder_and_slash(push_buffer_file_name(app, scratch, buffer));
-
-      // Handle relative path
-      i64 relative_count =0;
-      u8 *str  = filename.str;
-      for (u64 i = 0; i < filename.size; str+=3, i+=3) {
-        if (str[0] == '.' && str[1] == '.' && str[2] == '/') {
-          relative_count++;
-        }
-        else {
-          break;
-        }
-      }
-      for (i64 i = 0; i < relative_count; i++) {
-        base_path = string_remove_last_folder_and_slash(base_path);
-      }
-      filename = string_skip(filename, relative_count*3);
-
-      // Final file to open
-      //full_path = push_u8_stringf(scratch, "%S\\%S", base_path, filename);
-      //String_Const_u8 fp = push_u8_stringf(scratch, "%S\\%S", base_path, filename);
-
-      /*
-      */
-      u8 *concatated = push_array(scratch, u8, base_path.size + 1 + filename.size);
-      u8 *dst = concatated;
-
-      block_copy(dst, base_path.str, base_path.size); dst += base_path.size;
-      block_copy(dst, "\\", 1); dst += 1;
-      block_copy(dst, filename.str, filename.size);
-
-      String_Const_u8 fp = { concatated,base_path.size + 1 + filename.size };
-
-
-      if (view_open_file(app, view, fp, true)){
-        view_set_active(app, view);
-      }
-
-      return;
-
-    }
-
-    if (is_alt_quotes) {
-      // TODO(ziv): Figure out a way to make this not langauge specific
-
-      // This is currently specific to my c/c++ development
-      // It searches the msvc sdk, finds all folders that contain
-      // relevant .h files, and returns the main ones I should
-      // care about like winrt, cppwinrt, um, shared, ucrt
-
-      /*
-      #if OS_WINDOWS
-
-      local_persist List_String_Const_u8 list = {0};
-
-      if (list.node_count == 0) {
-      String_Const_u8 base = zk_msvc_sdk_include_path(scratch);
-      string_list_push(scratch, &list, push_u8_stringf(scratch, "%S\\%S", base, SCu8("ucrt")));
-      string_list_push(scratch, &list, push_u8_stringf(scratch, "%S\\%S", base, SCu8("shared")));
-      string_list_push(scratch, &list, push_u8_stringf(scratch, "%S\\%S", base, SCu8("um")));
-      string_list_push(scratch, &list, push_u8_stringf(scratch, "%S\\%S", base, SCu8("winrt")));
-      }
-
-      for (Node_String_Const_u8 *node = list.first; node; node = node->next) {
-      full_path = push_u8_stringf(scratch, "%S\\%S", node->string, filename);
-      if (!file_exists_and_is_file(app, full_path))  continue;
-      break;
-      }
-      #endif
-      */
-
-    }
-
-    /*
-    if (view_open_file(app, view, full_path, true)){
+  // if in project, just switch to the already opened buffer
+  String_Const_u8 filename = SCu8(query.str+1, query.size-2);
+  if (view_open_file(app, view, filename, true)) {
     view_set_active(app, view);
-    }
-    */
-
     return;
   }
 
-  code_index_lock();
-  Code_Index_Note_List* list = code_index__list_from_string(query);
-  Code_Index_Note *note = zk_find_next_intuitive_note(buffer, list->first, query, pos);
-  if (note) {
-    point_stack_push_view_cursor(app, view);
-    if (same_panel) jump_to_location(app, view,  note->file->buffer, note->pos.first);
-    else zk_open_other_panel_to_location(app, note->file->buffer, note->pos.first);
+  String_Const_u8 full_path = {0};
+  if (is_quotes && query.size > 2) {
+
+    // not in project, assume base directory from file you request from
+    String_Const_u8 base_path = string_remove_last_folder_and_slash(push_buffer_file_name(app, scratch, buffer));
+
+    // Handle relative path
+    i64 relative_count =0;
+    u8 *str  = filename.str;
+    for (u64 i = 0; i < filename.size; str+=3, i+=3) {
+      if (str[0] == '.' && str[1] == '.' && str[2] == '/') {
+        relative_count++;
+      }
+      else {
+        break;
+      }
+    }
+    for (i64 i = 0; i < relative_count; i++) {
+      base_path = string_remove_last_folder_and_slash(base_path);
+    }
+    filename = string_skip(filename, relative_count*3);
+
+    // Final file to open
+    full_path = push_u8_stringf(scratch, "%S\\%S", base_path, filename);
   }
-  code_index_unlock();
+
+  #if OS_WINDOWS
+  if (is_alt_quotes) {
+
+    // This is currently specific to my c/c++ development
+    // It searches the msvc sdk, finds all folders that contain
+    // relevant .h files, and returns the main ones I should
+    // care about like winrt, cppwinrt, um, shared, ucrt
+    local_persist List_String_Const_u8 list = {0};
+
+    if (list.node_count == 0) {
+      Arena *arena = &global_permanent_arena;
+      String_Const_u8 base = zk_msvc_sdk_include_path(scratch);
+      string_list_push(arena, &list, push_u8_stringf(arena, "%S\\%S", base, SCu8("ucrt")));
+      string_list_push(arena, &list, push_u8_stringf(arena, "%S\\%S", base, SCu8("shared")));
+      string_list_push(arena, &list, push_u8_stringf(arena, "%S\\%S", base, SCu8("um")));
+      string_list_push(arena, &list, push_u8_stringf(arena, "%S\\%S", base, SCu8("winrt")));
+      string_list_push(arena, &list, push_u8_stringf(arena, "%S\\%S", base, SCu8("cppwinrt")));
+
+      // NOTE(ziv): Things like <stdint.h> are inside of the compiler's include folder
+      // and I do not plan on supporting those.
+    }
+
+    for (Node_String_Const_u8 *node = list.first; node; node = node->next) {
+      full_path = zk_find_file_in_folder_recursive(scratch, node->string, filename);
+      if (file_exists_and_is_file(app, full_path))  break;
+    }
+  }
+  #endif
+
+  if (view_open_file(app, view, full_path, true)){
+    view_set_active(app, view);
+  }
 }
 
 CUSTOM_COMMAND_MC_GLOBAL_SIG(zk_go_to_definition_same_panel)

@@ -101,7 +101,7 @@ zk_tick(Application_Links *app, Frame_Info frame_info){
   qol_tick(app, frame_info);
   f32 dt = frame_info.animation_dt;
 
-  if (g_use_code_peek_hover || g_use_minimap_hover) {
+  if (g_use_minimap_hover) {
     g_hover_dt += dt;
     if (g_hover_dt < HOVER_TIME)
       animate_in_n_milliseconds(app, 0);
@@ -211,6 +211,13 @@ zk_render_buffer(Application_Links *app, View_ID view_id, Face_ID face_id, Buffe
       draw_whitespace_highlight(app, text_layout_id, &token_array, cursor_roundness);
     }
   }
+
+  // NOTE(rjf): Cursor Mark Range
+  if(is_active_view && fcoder_mode == FCoderMode_Original)
+  {
+    zk_highlight_cursor_mark_range(app, view_id, text_layout_id);
+  }
+
 
   b32 show_hex_colors = def_get_config_b32(vars_save_string_lit("show_hex_colors"));
   if (show_hex_colors){
@@ -364,9 +371,8 @@ zk_render_caller(Application_Links *app, Frame_Info frame_info, View_ID view_id)
 
 function void
 zk_whole_screen_render_caller(Application_Links *app, Frame_Info frame_info){
-  if (def_get_config_b32(vars_save_string_lit("use_code_peek")) &&
-        g_use_code_peek_hover && g_hover_dt > HOVER_TIME){
-    zk_draw_peek(app, frame_info);
+  if (def_get_config_b32(vars_save_string_lit("use_code_peek"))){
+    qol_draw_peek(app, frame_info);
   }
 
   if (qol_try_exit_view != 0){

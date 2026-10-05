@@ -68,6 +68,7 @@ global Managed_ID qol_view_jumps;
 global Managed_ID buffer_lang;
 global Managed_ID loco_marker_handle;
 global Managed_ID loco_marker_pair_handle;
+global Managed_ID defcolor_selection_highlight;
 global Managed_ID view_search_bar;
 global Managed_ID view_search_current_match_index;
 global Managed_ID view_search_all_matches_highlights;
@@ -143,6 +144,7 @@ qol_view_jumps = managed_id_declare(app, string_u8_litexpr("attachment"), string
 buffer_lang = managed_id_declare(app, string_u8_litexpr("attachment"), string_u8_litexpr("buffer_lang"));
 loco_marker_handle = managed_id_declare(app, string_u8_litexpr("attachment"), string_u8_litexpr("loco_marker_handle"));
 loco_marker_pair_handle = managed_id_declare(app, string_u8_litexpr("attachment"), string_u8_litexpr("loco_marker_pair_handle"));
+defcolor_selection_highlight = managed_id_declare(app, string_u8_litexpr("colors"), string_u8_litexpr("defcolor_selection_highlight"));
 view_search_bar = managed_id_declare(app, string_u8_litexpr("attachment"), string_u8_litexpr("view_search_bar"));
 view_search_current_match_index = managed_id_declare(app, string_u8_litexpr("attachment"), string_u8_litexpr("view_search_current_match_index"));
 view_search_all_matches_highlights = managed_id_declare(app, string_u8_litexpr("attachment"), string_u8_litexpr("view_search_all_matches_highlights"));

@@ -2,7 +2,7 @@
 #define command_id(c) (fcoder_metacmd_ID_##c)
 #define command_metadata(c) (&fcoder_metacmd_table[command_id(c)])
 #define command_metadata_by_id(id) (&fcoder_metacmd_table[id])
-#define command_one_past_last_id 356
+#define command_one_past_last_id 355
 #if defined(CUSTOM_COMMAND_SIG)
 #define PROC_LINKS(x,y) x
 #else
@@ -356,7 +356,6 @@ void write_text_input(struct Application_Links *app);
 void write_todo(struct Application_Links *app);
 void write_underscore(struct Application_Links *app);
 void write_zero_struct(struct Application_Links *app);
-void zk_click_set_cursor_if_lbutton_or_code_peek(struct Application_Links *app);
 void zk_go_to_definition_other_panel(struct Application_Links *app);
 void zk_go_to_definition_same_panel(struct Application_Links *app);
 void zk_jump_to_definition_lister(struct Application_Links *app);
@@ -381,7 +380,7 @@ i32 source_name_len;
 i32 line_number;
 };
 
-static Command_Metadata fcoder_metacmd_table[356] = {
+static Command_Metadata fcoder_metacmd_table[355] = {
 { PROC_LINKS(MC_add_at_pos, 0), 0, false, "MC_add_at_pos", 13, "[MC] adds multi-cursor at current pos", 37, "E:\\dev\\4coder_ziv\\4coder_qol\\plugins\\4coder_multi_cursor.cpp", 60, 375 },
 { PROC_LINKS(MC_begin_multi, 0), 0, false, "MC_begin_multi", 14, "[MC] begins multi-cursors", 25, "E:\\dev\\4coder_ziv\\4coder_qol\\plugins\\4coder_multi_cursor.cpp", 60, 388 },
 { PROC_LINKS(MC_begin_multi_block, 0), 0, false, "MC_begin_multi_block", 20, "[MC] begins multi-cursor using cursor-mark block-rect", 53, "E:\\dev\\4coder_ziv\\4coder_qol\\plugins\\4coder_multi_cursor.cpp", 60, 414 },
@@ -405,7 +404,7 @@ static Command_Metadata fcoder_metacmd_table[356] = {
 { PROC_LINKS(begin_tutorial, 0), 2, false, "begin_tutorial", 14, "Tutorial for built in 4coder bindings and features.", 51, "E:\\dev\\4coder_ziv\\4coder_qol\\custom\\4coder_tutorial.cpp", 55, 880 },
 { PROC_LINKS(build_in_build_panel, 0), 2, false, "build_in_build_panel", 20, "Looks for a build.bat, build.sh, or makefile in the current and parent directories.  Runs the first that it finds and prints the output to *compilation*.  Puts the *compilation* buffer in a panel at the footer of the current view.", 230, "E:\\dev\\4coder_ziv\\4coder_qol\\custom\\4coder_build_commands.cpp", 61, 160 },
 { PROC_LINKS(build_search, 0), 2, false, "build_search", 12, "Looks for a build.bat, build.sh, or makefile in the current and parent directories.  Runs the first that it finds and prints the output to *compilation*.", 153, "E:\\dev\\4coder_ziv\\4coder_qol\\custom\\4coder_build_commands.cpp", 61, 120 },
-{ PROC_LINKS(casey_delete_to_end_of_line, 0), 0, false, "casey_delete_to_end_of_line", 27, "Deletes everything from the cursor to the end of the line.", 58, "E:\\dev\\4coder_ziv\\4coder_zk\\4coder_zk_commands.cpp", 50, 450 },
+{ PROC_LINKS(casey_delete_to_end_of_line, 0), 0, false, "casey_delete_to_end_of_line", 27, "Deletes everything from the cursor to the end of the line.", 58, "E:\\dev\\4coder_ziv\\4coder_zk\\4coder_zk_commands.cpp", 50, 438 },
 { PROC_LINKS(center_view, 0), 2, false, "center_view", 11, "Centers the view vertically on the line on which the cursor sits.", 65, "E:\\dev\\4coder_ziv\\4coder_qol\\custom\\4coder_base_commands.cpp", 60, 199 },
 { PROC_LINKS(change_active_panel, 0), 0, false, "change_active_panel", 19, "Change the currently active panel, moving to the panel with the next highest view_id.", 85, "E:\\dev\\4coder_ziv\\4coder_qol\\custom\\4coder_default_framework.cpp", 64, 344 },
 { PROC_LINKS(change_active_panel_backwards, 0), 0, false, "change_active_panel_backwards", 29, "Change the currently active panel, moving to the panel with the next lowest view_id.", 84, "E:\\dev\\4coder_ziv\\4coder_qol\\custom\\4coder_default_framework.cpp", 64, 350 },
@@ -728,15 +727,14 @@ static Command_Metadata fcoder_metacmd_table[356] = {
 { PROC_LINKS(write_todo, 0), 1, false, "write_todo", 10, "At the cursor, insert a '// TODO' comment, includes user name if it was specified in config.4coder.", 99, "E:\\dev\\4coder_ziv\\4coder_qol\\custom\\4coder_combined_write_commands.cpp", 70, 76 },
 { PROC_LINKS(write_underscore, 0), 1, false, "write_underscore", 16, "Inserts an underscore.", 22, "E:\\dev\\4coder_ziv\\4coder_qol\\custom\\4coder_base_commands.cpp", 60, 73 },
 { PROC_LINKS(write_zero_struct, 0), 1, false, "write_zero_struct", 17, "At the cursor, insert a ' = {};'.", 33, "E:\\dev\\4coder_ziv\\4coder_qol\\custom\\4coder_combined_write_commands.cpp", 70, 100 },
-{ PROC_LINKS(zk_click_set_cursor_if_lbutton_or_code_peek, 0), 0, false, "zk_click_set_cursor_if_lbutton_or_code_peek", 43, "Tracks mouse state for code peek, click to set cursor position", 62, "E:\\dev\\4coder_ziv\\4coder_zk\\4coder_zk_commands.cpp", 50, 4 },
-{ PROC_LINKS(zk_go_to_definition_other_panel, 0), 2, false, "zk_go_to_definition_other_panel", 31, "[ZK] Jump to the definition of identifier at the cursor other panel", 67, "E:\\dev\\4coder_ziv\\4coder_zk\\4coder_zk_commands.cpp", 50, 353 },
-{ PROC_LINKS(zk_go_to_definition_same_panel, 0), 2, false, "zk_go_to_definition_same_panel", 30, "[ZK] Jump to the definition of identifier at the cursor", 55, "E:\\dev\\4coder_ziv\\4coder_zk\\4coder_zk_commands.cpp", 50, 347 },
-{ PROC_LINKS(zk_jump_to_definition_lister, 0), 0, true, "zk_jump_to_definition_lister", 28, "List all definitions in the code index and jump to one chosen by the user.", 74, "E:\\dev\\4coder_ziv\\4coder_zk\\4coder_zk_commands.cpp", 50, 76 },
-{ PROC_LINKS(zk_kill_rectangle, 0), 0, false, "zk_kill_rectangle", 17, "[QOL] Prompt deletion of text in the cursor/mark rectangle", 58, "E:\\dev\\4coder_ziv\\4coder_zk\\4coder_zk_commands.cpp", 50, 423 },
-{ PROC_LINKS(zk_list_all_locations, 0), 0, false, "zk_list_all_locations", 21, "[zk] Queries the user for a string and lists all exact case-insensitive matches found in all open buffers.", 106, "E:\\dev\\4coder_ziv\\4coder_zk\\4coder_zk_search.cpp", 48, 278 },
-{ PROC_LINKS(zk_mouse_column_toggle, 0), 2, false, "zk_mouse_column_toggle", 22, "[ZK] Toggles the column for bumping and selects hovered char at mouse position", 78, "E:\\dev\\4coder_ziv\\4coder_zk\\4coder_zk_commands.cpp", 50, 362 },
-{ PROC_LINKS(zk_reverse_search, 0), 0, false, "zk_reverse_search", 17, "[ZK] I-search up", 16, "E:\\dev\\4coder_ziv\\4coder_zk\\4coder_zk_search.cpp", 48, 1189 },
-{ PROC_LINKS(zk_search, 0), 0, false, "zk_search", 9, "[ZK] I-search down", 18, "E:\\dev\\4coder_ziv\\4coder_zk\\4coder_zk_search.cpp", 48, 1183 },
+{ PROC_LINKS(zk_go_to_definition_other_panel, 0), 2, false, "zk_go_to_definition_other_panel", 31, "[ZK] Jump to the definition of identifier at the cursor other panel", 67, "E:\\dev\\4coder_ziv\\4coder_zk\\4coder_zk_commands.cpp", 50, 341 },
+{ PROC_LINKS(zk_go_to_definition_same_panel, 0), 2, false, "zk_go_to_definition_same_panel", 30, "[ZK] Jump to the definition of identifier at the cursor", 55, "E:\\dev\\4coder_ziv\\4coder_zk\\4coder_zk_commands.cpp", 50, 335 },
+{ PROC_LINKS(zk_jump_to_definition_lister, 0), 0, true, "zk_jump_to_definition_lister", 28, "List all definitions in the code index and jump to one chosen by the user.", 74, "E:\\dev\\4coder_ziv\\4coder_zk\\4coder_zk_commands.cpp", 50, 40 },
+{ PROC_LINKS(zk_kill_rectangle, 0), 0, false, "zk_kill_rectangle", 17, "[QOL] Prompt deletion of text in the cursor/mark rectangle", 58, "E:\\dev\\4coder_ziv\\4coder_zk\\4coder_zk_commands.cpp", 50, 411 },
+{ PROC_LINKS(zk_list_all_locations, 0), 0, false, "zk_list_all_locations", 21, "[zk] Queries the user for a string and lists all exact case-insensitive matches found in all open buffers.", 106, "E:\\dev\\4coder_ziv\\4coder_zk\\4coder_zk_search.cpp", 48, 280 },
+{ PROC_LINKS(zk_mouse_column_toggle, 0), 2, false, "zk_mouse_column_toggle", 22, "[ZK] Toggles the column for bumping and selects hovered char at mouse position", 78, "E:\\dev\\4coder_ziv\\4coder_zk\\4coder_zk_commands.cpp", 50, 350 },
+{ PROC_LINKS(zk_reverse_search, 0), 0, false, "zk_reverse_search", 17, "[ZK] I-search up", 16, "E:\\dev\\4coder_ziv\\4coder_zk\\4coder_zk_search.cpp", 48, 1195 },
+{ PROC_LINKS(zk_search, 0), 0, false, "zk_search", 9, "[ZK] I-search down", 18, "E:\\dev\\4coder_ziv\\4coder_zk\\4coder_zk_search.cpp", 48, 1189 },
 { PROC_LINKS(zk_startup, 0), 0, false, "zk_startup", 10, "ZK command for responding to a startup event", 44, "E:\\dev\\4coder_ziv\\4coder_zk\\4coder_zk_hooks.cpp", 47, 2 },
 };
 
@@ -1086,14 +1084,13 @@ static i32 fcoder_metacmd_ID_write_text_input = 342;
 static i32 fcoder_metacmd_ID_write_todo = 343;
 static i32 fcoder_metacmd_ID_write_underscore = 344;
 static i32 fcoder_metacmd_ID_write_zero_struct = 345;
-static i32 fcoder_metacmd_ID_zk_click_set_cursor_if_lbutton_or_code_peek = 346;
-static i32 fcoder_metacmd_ID_zk_go_to_definition_other_panel = 347;
-static i32 fcoder_metacmd_ID_zk_go_to_definition_same_panel = 348;
-static i32 fcoder_metacmd_ID_zk_jump_to_definition_lister = 349;
-static i32 fcoder_metacmd_ID_zk_kill_rectangle = 350;
-static i32 fcoder_metacmd_ID_zk_list_all_locations = 351;
-static i32 fcoder_metacmd_ID_zk_mouse_column_toggle = 352;
-static i32 fcoder_metacmd_ID_zk_reverse_search = 353;
-static i32 fcoder_metacmd_ID_zk_search = 354;
-static i32 fcoder_metacmd_ID_zk_startup = 355;
+static i32 fcoder_metacmd_ID_zk_go_to_definition_other_panel = 346;
+static i32 fcoder_metacmd_ID_zk_go_to_definition_same_panel = 347;
+static i32 fcoder_metacmd_ID_zk_jump_to_definition_lister = 348;
+static i32 fcoder_metacmd_ID_zk_kill_rectangle = 349;
+static i32 fcoder_metacmd_ID_zk_list_all_locations = 350;
+static i32 fcoder_metacmd_ID_zk_mouse_column_toggle = 351;
+static i32 fcoder_metacmd_ID_zk_reverse_search = 352;
+static i32 fcoder_metacmd_ID_zk_search = 353;
+static i32 fcoder_metacmd_ID_zk_startup = 354;
 #endif

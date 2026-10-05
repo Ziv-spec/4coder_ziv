@@ -115,6 +115,8 @@
 #error "This file uses the multi-cursor plugin by BYP\nPlease use it in your custom layer first"
 #endif
 
+CUSTOM_ID(colors, defcolor_selection_highlight);
+
 CUSTOM_ID(attachment, view_search_bar);
 CUSTOM_ID(attachment, view_search_current_match_index);
 CUSTOM_ID(attachment, view_search_all_matches_highlights);
@@ -432,14 +434,16 @@ SEARCH_draw_highlights_inner(Application_Links *app, View_ID view, Text_Layout_I
 
   Range_i64_Array all_matches = matches_to_highlight->range_array;
   int middle_match_index = (int)matches_to_highlight->current_match_index;
-
   if (all_matches.count <= 0 || all_matches.ranges == NULL || middle_match_index < 0 || middle_match_index > all_matches.count)
     return;
+
+  Assert(0 <= middle_match_index && middle_match_index <= all_matches.count) ;
 
   f32 roundness = 0;
   for (int i = middle_match_index; 0 <= i; --i) {
     Range_i64 match = all_matches.ranges[i];
     if (!((visible_range.min+1) < match.min))  break;
+
 
     draw_character_block(app, text_layout_id, match, roundness, fcolor_resolve(all_matches_highlight_color));
   }
@@ -508,7 +512,7 @@ SEARCH_draw_bar_inner(Application_Links *app, Frame_Info frame_info, Rect_f32 re
     if (search_bar.is_selection_active) {
       Range_f32 sel = If32(anchor_x_pos, cursor_x_pos);
       Rect_f32 rect = Rf32_xy_wh(sel.min, p.y, sel.max - sel.min, face_metrics.line_height);
-      draw_rectangle_fcolor(app, rect, 0.f, fcolor_id(defcolor_at_highlight, 0));
+      draw_rectangle_fcolor(app, rect, 0.f, fcolor_id(defcolor_selection_highlight, 0));
     }
 
     // Draw text
@@ -516,15 +520,17 @@ SEARCH_draw_bar_inner(Application_Links *app, Frame_Info frame_info, Rect_f32 re
 
     b32 is_active_view = search_bar.view == get_active_view(app, Access_Always);
     if (is_active_view) {
-      animate_in_n_milliseconds(app, 500);
+      // animate_in_n_milliseconds(app, 500);
 
+      /*
       blink_value += frame_info.literal_dt;
       f32 value = sin_f32(blink_value * (3.14159265359f * 2.f));
       if (value < 0.5f+0.016f|| blink_value > 6) {
-        // Draw cursor rect
-        draw_rectangle_fcolor(app, Rf32_xy_wh(cursor_x_pos, p.y, 2.f, face_metrics.line_height), 0.f, fcolor_id(defcolor_cursor, 0));
+      // Draw cursor rect
       }
+      */
 
+      draw_rectangle_fcolor(app, Rf32_xy_wh(cursor_x_pos, p.y, 2.f, face_metrics.line_height), 0.f, fcolor_id(defcolor_cursor, 0));
     }
 
     region = pair.min;
