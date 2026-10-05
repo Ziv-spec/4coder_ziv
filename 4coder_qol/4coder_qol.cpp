@@ -51,6 +51,9 @@ global Buffer_ID qol_col_buffer;
 
 global Vec2_f32 qol_cur_cursor_pos;
 global Vec2_f32 qol_nxt_cursor_pos;
+global Vec2_f32 qol_cur_mark_pos;
+global Vec2_f32 qol_nxt_mark_pos;
+
 
 #define HOVER_TIME 0.25f
 global f32 g_hover_dt;
@@ -162,7 +165,6 @@ void custom_layer_init(Application_Links *app){
 }
 
 // [x] Removing all vim related stuff
-// [x] Show Code peek on mouse hover
 // [x] Old file bar but with progress percent (just like in BYP layer)
 // [x] move tooltip to the bottom of the view / have a setting for switching between the two
 // [x] lister item counter just like in the 4coder_long implementation that is great
@@ -178,7 +180,6 @@ void custom_layer_init(Application_Links *app){
 //   [ ] fix bug with get next intitive node
 // [ ] search
 // [x] add selection range to cursor
-// [ ] code peek fix it pleasee (it's shit)
 //
 // Review the behavior of 'quick_swap_buffer' I remember I Had problems with it at some point
 // yeah. So the beahvior that I don't like is that when I am jumping around many files, one after

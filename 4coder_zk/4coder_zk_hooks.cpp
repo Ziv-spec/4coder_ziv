@@ -109,7 +109,16 @@ zk_tick(Application_Links *app, Frame_Info frame_info){
   else {
     g_hover_dt = 0;
   }
+
+
+  qol_interp(qol_cur_mark_pos, qol_nxt_mark_pos, dt, 1e-10f);
+  if (!near_zero(qol_cur_mark_pos - qol_nxt_mark_pos, 0.5f)){
+    animate_in_n_milliseconds(app, 0);
+  }
+
 }
+
+
 
 
 function void
@@ -213,11 +222,9 @@ zk_render_buffer(Application_Links *app, View_ID view_id, Face_ID face_id, Buffe
   }
 
   // NOTE(rjf): Cursor Mark Range
-  if(is_active_view && fcoder_mode == FCoderMode_Original)
-  {
-    zk_highlight_cursor_mark_range(app, view_id, text_layout_id);
+  if(is_active_view && fcoder_mode == FCoderMode_Original){
+    zk_highlight_cursor_mark_range(app, view_id, text_layout_id, rect, metrics.text_height);
   }
-
 
   b32 show_hex_colors = def_get_config_b32(vars_save_string_lit("show_hex_colors"));
   if (show_hex_colors){
@@ -237,7 +244,7 @@ zk_render_buffer(Application_Links *app, View_ID view_id, Face_ID face_id, Buffe
       Scratch_Block scratch(app);
       String_ID key = vars_save_string_lit("cursor_style");
       String_Const_u8 prev = def_get_config_string(scratch, key);
-      qol_draw_cursor_mark(app, view_id, is_active_view, buffer, text_layout_id, cursor_roundness, mark_thickness);
+      zk_draw_cursor_mark(app, view_id, is_active_view, buffer, text_layout_id, cursor_roundness, mark_thickness);
 
       draw_set_clip(app, r);
     }break;

@@ -178,30 +178,90 @@ zk_draw_function_tooltip(Application_Links *app, Buffer_ID buffer, Rect_f32 regi
 
 // COPYPASTA From fleury layer
 function void
-zk_highlight_cursor_mark_range(Application_Links *app, View_ID view_id, Text_Layout_ID text_layout_id)
+zk_highlight_cursor_mark_range(Application_Links *app, View_ID view_id, Text_Layout_ID text_layout_id, Rect_f32 clip, f32 h)
 {
-
   Rect_f32 view_rect = view_get_screen_rect(app, view_id);
-  Rect_f32 clip = draw_set_clip(app, view_rect);
+  Rect_f32 old_clip = draw_set_clip(app, view_rect);
 
-  i64 mark_pos = view_get_mark_pos(app, view_id);
-  Rect_f32 mark_rect = text_layout_character_on_screen(app, text_layout_id, mark_pos);
-
-
-  f32 lower_bound_y;
-  f32 upper_bound_y;
-  if(qol_cur_cursor_pos.y < mark_rect.y0)
-  {
-    lower_bound_y = qol_cur_cursor_pos.y;
-    upper_bound_y = mark_rect.y1;
+  i64 mark_pos = view_get_mark_pos(app, view_id); // view_get_cursor_pos(app, view);
+  Range_i64 visible_range = text_layout_get_visible_range(app, text_layout_id);
+  if(mark_pos < visible_range.start) {
+    qol_cur_mark_pos.y = clip.y0;
   }
-  else
-  {
-    lower_bound_y = qol_cur_cursor_pos.y;
-    upper_bound_y = mark_rect.y0;
+  else if (mark_pos > visible_range.end) {
+    qol_cur_mark_pos.y = clip.y1;
   }
 
-  draw_rectangle(app, Rf32(view_rect.x0, lower_bound_y, view_rect.x0 + 4, upper_bound_y), 3.f,
+  Range_f32 bound = If32(qol_cur_cursor_pos.y, qol_cur_mark_pos.y);
+  draw_rectangle(app, Rf32(view_rect.x0, bound.min, view_rect.x0 + 4, bound.max+h), 3.f,
                  fcolor_resolve(fcolor_change_alpha(fcolor_id(defcolor_comment), 0.5f)));
-  draw_set_clip(app, clip);
+  draw_set_clip(app, old_clip);
+}
+
+
+function void
+zk_draw_cursor_mark(Application_Links *app, View_ID view_id, b32 is_active_view,
+                    Buffer_ID buffer, Text_Layout_ID text_layout_id,
+                    f32 roundness, f32 outline_thickness){
+  b32 has_highlight_range = draw_highlight_range(app, view_id, buffer, text_layout_id, roundness);
+
+  i64 cursor_pos = view_get_cursor_pos(app, view_id);
+  i64 mark_pos = view_get_mark_pos(app, view_id);
+
+  Rect_f32 nxt_cursor_rect = text_layout_character_on_screen(app, text_layout_id, cursor_pos);
+  Rect_f32 cur_cursor_rect = Rf32_xy_wh(qol_cur_cursor_pos, rect_dim(nxt_cursor_rect));
+  if (is_active_view && nxt_cursor_rect.x1 > 0.f){
+    qol_nxt_cursor_pos = nxt_cursor_rect.p0;
+  }
+
+  if (!has_highlight_range){
+    Scratch_Block scratch(app);
+    QOL_Cursor_Kind cursor_kind = qol_cursor_kind(def_get_config_string(scratch, vars_save_string_lit("cursor_style")));
+    QOL_Cursor_Kind   mark_kind = qol_cursor_kind(def_get_config_string(scratch, vars_save_string_lit("mark_style")));
+
+    ARGB_Color cl_cursor = fcolor_resolve(fcolor_id(defcolor_cursor, default_cursor_sub_id()));
+    ARGB_Color cl_mark   = fcolor_resolve(fcolor_id(defcolor_mark));
+    if (is_active_view && cursor_kind == QOL_Cursor_Rect && rect_overlap(nxt_cursor_rect, cur_cursor_rect)){
+      // NOTE: Only paint once cursor is overlapping (from Jack Punter)
+      paint_text_color_pos(app, text_layout_id, cursor_pos, fcolor_id(defcolor_at_cursor));
+    }
+    else if (!is_active_view){
+      draw_rectangle_outline(app, nxt_cursor_rect, roundness, outline_thickness, cl_cursor);
+    }
+
+    b32 b = cursor_pos < mark_pos;
+    b32 c = mark_pos <= cursor_pos;
+    f32 w = rect_width(cur_cursor_rect) - 3.f;
+
+    {
+      Vec2_f32 d = V2f32(c ? w : 0, 0);
+      Rect_f32 rect_shifted = Rf32(cur_cursor_rect.p0-d, cur_cursor_rect.p1-d);
+      switch (cursor_kind){
+        case QOL_Cursor_Rect:    draw_rectangle(app, cur_cursor_rect, roundness, cl_cursor); break;
+        case QOL_Cursor_Thin:    draw_rectangle(app, rect_vsplit(cur_cursor_rect, 1.f, 0), 0.f, cl_cursor); break;
+        case QOL_Cursor_Under:   draw_rectangle(app, rect_hsplit(cur_cursor_rect, 3.f, 1), roundness, cl_cursor); break;
+        case QOL_Cursor_Corner: (draw_rectangle(app, rect_vsplit(cur_cursor_rect, 3.f, 0), roundness, cl_cursor),
+                                 draw_rectangle(app, rect_hsplit(rect_shifted,    3.f, c), roundness, cl_cursor)); break;
+      }
+    }
+
+    {
+      Rect_f32 mark_rect = text_layout_character_on_screen(app, text_layout_id, mark_pos);
+      if (is_active_view && mark_rect.x1 > 0) {
+        qol_nxt_mark_pos = mark_rect.p0;
+      }
+      Vec2_f32 d = V2f32(b ? w : 0, 0);
+      Rect_f32 rect_shifted = Rf32(mark_rect.p0-d, mark_rect.p1-d);
+      switch (mark_kind){
+        case QOL_Cursor_Rect:    draw_rectangle_outline(app, mark_rect, roundness, outline_thickness, cl_mark); break;
+        case QOL_Cursor_Thin:    draw_rectangle(app, rect_vsplit(mark_rect, 1.f, 0), 0.f, cl_mark); break;
+        case QOL_Cursor_Under:   draw_rectangle(app, rect_hsplit(mark_rect, 3.f, 1), roundness, cl_mark); break;
+        case QOL_Cursor_Corner: (draw_rectangle(app, rect_vsplit(mark_rect,    outline_thickness,  0), roundness, cl_mark),
+                                 draw_rectangle(app, rect_hsplit(rect_shifted, outline_thickness, !c), roundness, cl_mark));
+      }
+    }
+
+  }
+
+  MC_render_cursors(app, view_id, text_layout_id);
 }
