@@ -248,7 +248,7 @@ qol_draw_function_tooltip_inner(Application_Links *app, Arena *arena, Code_Index
   i64 pos_start = paren_caller->open.min;
 
   Code_Index_Nest_List caller_list = paren_caller->nest_list;
-  if (0 < caller_list.count && caller_list.last->close.max <= pos){
+  if (0 < caller_list.count && caller_list.last->close.min < pos){
     param_hovered = caller_list.count;
   } else for (Code_Index_Nest *n = caller_list.first; n != 0; n = n->next){
     if (n->next == 0 || range_contains(Ii64(pos_start, n->close.min), pos)){ break; }
@@ -366,7 +366,7 @@ qol_draw_compile_errors(Application_Links *app, Buffer_ID buffer, Text_Layout_ID
 }
 
 function Rect_f32
-qol_draw_query_bars(Application_Links *app, Rect_f32 region, View_ID view_id, Face_ID face_id){
+qol_draw_query_bars(Application_Links *app, Frame_Info frame_info, Rect_f32 region, View_ID view_id, Face_ID face_id){
   Face_Metrics face_metrics = get_face_metrics(app, face_id);
   f32 line_height = face_metrics.line_height;
 
@@ -386,8 +386,12 @@ qol_draw_query_bars(Application_Links *app, Rect_f32 region, View_ID view_id, Fa
       push_fancy_string(scratch, &list, fcolor_id(defcolor_text_default), query_bar->string);
       Vec2_f32 p = bar_rect.p0 + V2f32(2.f, 2.f);
       p = draw_fancy_line(app, face_id, fcolor_zero(), &list, p);
+      draw_rectangle_fcolor(app, rect_split_top_bottom_neg(region, 2.f).max, 0.f, fcolor_id(defcolor_bar));
       if (i == 0){
-        draw_rectangle_fcolor(app, Rf32_xy_wh(p.x, p.y, 2.f, face_metrics.line_height), 0.f, fcolor_id(defcolor_cursor, 0));
+        local_persist Vec2_f32 cur_p = p;
+        if (dist(cur_p, p) > 0.25f*dist(region.p0, region.p1)){ cur_p = p; }
+        qol_interp(cur_p, p, frame_info.animation_dt, 1e-14f);
+        draw_rectangle_fcolor(app, Rf32_xy_wh(cur_p.x, cur_p.y, 2.f, face_metrics.line_height), 0.f, fcolor_id(defcolor_cursor, 0));
       }
 
       region = pair.min;
@@ -570,7 +574,7 @@ qol_render_caller(Application_Links *app, Frame_Info frame_info, View_ID view_id
   f32 digit_advance = face_metrics.decimal_digit_advance;
 
   // NOTE(allen): query bars
-  region = qol_draw_query_bars(app, region, view_id, face_id);
+  region = qol_draw_query_bars(app, frame_info, region, view_id, face_id);
 
   // NOTE(allen): file bar
   b64 showing_file_bar = false;
@@ -642,8 +646,8 @@ qol_render_caller(Application_Links *app, Frame_Info frame_info, View_ID view_id
   // NOTE(allen): draw line numbers
   if (show_line_number_margins){
     (def_get_config_b32(vars_save_string_lit("vim_line_numbers_relative")) ?
-      vim_draw_rel_line_number_margin(app, view_id, buffer, face_id, text_layout_id, line_number_rect) :
-      vim_draw_abs_line_number_margin(app, view_id, buffer, face_id, text_layout_id, line_number_rect));
+     vim_draw_rel_line_number_margin(app, view_id, buffer, face_id, text_layout_id, line_number_rect) :
+     vim_draw_abs_line_number_margin(app, view_id, buffer, face_id, text_layout_id, line_number_rect));
   }
 
   // NOTE(allen): draw the buffer

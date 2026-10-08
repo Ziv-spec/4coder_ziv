@@ -172,7 +172,7 @@ function Code_Index_Nest* qol_parse_stmnt(QOL_Parse_State *state){
     if (qol_tok_peek(state, TokenBaseKind_ScopeOpen )){ break; } // { qol_parse_scope(state); return qol_nest_pop(state, true, Ii64(state->just_closed)); }
     if (qol_tok_peek(state, TokenBaseKind_ParenClose)){ break; }
     if (qol_tok_peek(state, TokenBaseKind_ScopeClose)){ break; }
-    if (qol_tok_peek(state, TokenBaseKind_StmntClose)){ defer{ qol_tok_consume(state); }; return qol_nest_pop(state, true, Ii64(qol_tok_close(state))); }
+    if (qol_tok_peek(state, TokenBaseKind_StmntClose)){ defer{ qol_tok_consume(state); }; return qol_nest_pop(state, true, Ii64(Ii64(qol_tok_close(state)).max)); }
     qol_tok_consume(state);
   }
   return qol_nest_pop(state, true, Ii64(qol_tok_close(state)->pos));

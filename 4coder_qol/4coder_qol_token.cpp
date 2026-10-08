@@ -13,6 +13,7 @@ function b32 qol_highlight_token(Token_Base_Kind kind){
 
 function Managed_ID qol_get_token_color_base(Token *token){
   switch (token->kind){
+    case TokenBaseKind_LexError:       { return defcolor_special_character; }break;
     case TokenBaseKind_Preproc:        { return defcolor_preproc;        }break;
     case TokenBaseKind_Keyword:        { return defcolor_keyword;        }break;
     case TokenBaseKind_Comment:        { return defcolor_comment;        }break;

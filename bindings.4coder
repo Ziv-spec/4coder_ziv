@@ -21,6 +21,11 @@ keys_vim = {
   {"N|MAP", "toggle_fullscreen",              "F11"},
 
   {"MAP", "vim_normal_mode",                     "Escape"},
+  {"MAP", "vim_normal_mode",               "SUB_G|Escape"},
+  {"MAP", "vim_normal_mode",               "SUB_Z|Escape"},
+  {"MAP", "vim_normal_mode",          "SUB_Window|Escape"},
+  {"MAP", "vim_normal_mode",          "SUB_Leader|Escape"},
+
   {"MAP", "qol_bview_bottom_to_active",  "Alt|   |Return"},
   {"MAP", "qol_bview_active_to_bottom",  "Alt|Sft|Return"},
   {"MAP", "qol_bview_toggle",                "Ctl|Return"},
@@ -224,6 +229,9 @@ keys_vim = {
   //{"N|MAP", "vim_window_u",               "SUB_Window|K"},
   //{"N|MAP", "vim_window_r",               "SUB_Window|L"},
 
+  {"N|MAP", "",                 "Tab"},
+  {"N|MAP", "TAB_next", "Ctl|   |Tab"},
+  {"N|MAP", "TAB_prev", "Ctl|Sft|Tab"},
   {"N|MAP", "TAB_next", "SUB_G|   |T"},
   {"N|MAP", "TAB_prev", "SUB_G|Sft|T"},
   {"N|MAP", "TAB_prev",       "Ctl|PageUp"},
