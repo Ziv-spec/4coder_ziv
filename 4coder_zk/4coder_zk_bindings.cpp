@@ -8,7 +8,7 @@ zk_setup_essential_mapping(Mapping *mapping, i64 global_id, i64 file_id, i64 cod
   BindCore(zk_startup, CoreCode_Startup);
   BindCore(qol_try_exit, CoreCode_TryExit);
   BindCore(clipboard_record_clip, CoreCode_NewClipboardContents);
-  BindMouseWheel(qol_scroll_hovered);
+  BindMouseWheel(zk_mouse_wheel_scroll);
   BindMouseWheel(mouse_wheel_change_face_size, KeyCode_Control);
 
   SelectMap(file_id);
@@ -37,7 +37,6 @@ zk_setup_default_mapping(Mapping *mapping, i64 global_id, i64 file_id, i64 code_
   Bind(keyboard_macro_start_recording,  KeyCode_U, KeyCode_Control);
   Bind(keyboard_macro_finish_recording, KeyCode_U, KeyCode_Control, KeyCode_Shift);
   Bind(keyboard_macro_replay,           KeyCode_U, KeyCode_Alt);
-  MC_Bind(MC_end_multi,                 KeyCode_Escape);
 
   // Panels
   Bind(open_panel_hsplit,             KeyCode_Minus, KeyCode_Control);
@@ -125,8 +124,8 @@ zk_setup_default_mapping(Mapping *mapping, i64 global_id, i64 file_id, i64 code_
   // Left/Right
   MC_Bind(move_left,           KeyCode_Left);
   MC_Bind(move_right,          KeyCode_Right);
-  MC_Bind(qol_char_forward,    KeyCode_Right, KeyCode_Shift);
-  MC_Bind(qol_char_backward,   KeyCode_Left, KeyCode_Shift);
+  //MC_Bind(qol_char_forward,    KeyCode_Right, KeyCode_Shift);
+  //MC_Bind(qol_char_backward,   KeyCode_Left, KeyCode_Shift);
   MC_Bind(qol_ctrl_forwards,   KeyCode_Right, KeyCode_Control);
   MC_Bind(qol_ctrl_backwards,  KeyCode_Left, KeyCode_Control);
   MC_Bind(seek_end_of_line,    KeyCode_End);
@@ -139,8 +138,8 @@ zk_setup_default_mapping(Mapping *mapping, i64 global_id, i64 file_id, i64 code_
   Bind(move_down_to_blank_line_end,      KeyCode_Down, KeyCode_Control);
   Bind(move_line_up,                     KeyCode_Up, KeyCode_Alt);
   Bind(move_line_down,                   KeyCode_Down, KeyCode_Alt);
-  Bind(qol_find_divider_up,              KeyCode_Up, KeyCode_Control, KeyCode_Shift);
-  Bind(qol_find_divider_down,            KeyCode_Down, KeyCode_Control, KeyCode_Shift);
+  Bind(zk_find_divider_up_or_notepadlike_highlight,   KeyCode_Up, KeyCode_Control, KeyCode_Shift);
+  Bind(zk_find_divider_down_or_notepadlike_highlight, KeyCode_Down, KeyCode_Control, KeyCode_Shift);
 
   // More Movement
   Bind(page_up,                          KeyCode_PageUp);
@@ -155,6 +154,7 @@ zk_setup_default_mapping(Mapping *mapping, i64 global_id, i64 file_id, i64 code_
   // Multi Cursor
   Bind(MC_add_at_pos,            KeyCode_BackwardSlash, KeyCode_Control);
   Bind(MC_begin_multi,           KeyCode_Return, KeyCode_Alt);
+  MC_Bind(MC_end_multi,          KeyCode_Escape);
   Bind(MC_begin_multi_block,     KeyCode_L, KeyCode_Control, KeyCode_Shift);
   Bind(MC_up_trail,              KeyCode_Up, KeyCode_Control, KeyCode_Alt);
   Bind(MC_down_trail,            KeyCode_Down, KeyCode_Control, KeyCode_Alt);

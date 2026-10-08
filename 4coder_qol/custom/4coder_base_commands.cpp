@@ -29,7 +29,7 @@ write_text(Application_Links *app, String_Const_u8 insert){
           char c = string.str[string.size - 1];
           if (c != '\n'){
             if (character_is_whitespace(insert.str[0]) &&
-                character_is_whitespace(c)){
+                  character_is_whitespace(c)){
               do_merge = true;
             }
             else if (character_is_alpha_numeric(insert.str[0]) && character_is_alpha_numeric(c)){
@@ -944,7 +944,7 @@ isearch(Application_Links *app, Scan_Direction start_scan, i64 first_pos,
 
     b32 string_change = false;
     if (match_key_code(&in, KeyCode_Return) ||
-        match_key_code(&in, KeyCode_Tab)){
+          match_key_code(&in, KeyCode_Tab)){
       Input_Modifier_Set *mods = &in.event.key.modifiers;
       if (has_modifier(mods, KeyCode_Control)){
         bar.string.size = cstring_length(previous_isearch_query);
@@ -983,12 +983,12 @@ isearch(Application_Links *app, Scan_Direction start_scan, i64 first_pos,
     Scan_Direction change_scan = scan;
     if (!string_change){
       if (match_key_code(&in, KeyCode_PageDown) ||
-          match_key_code(&in, KeyCode_Down)){
+            match_key_code(&in, KeyCode_Down)){
         change_scan = Scan_Forward;
         do_scan_action = true;
       }
       else if (match_key_code(&in, KeyCode_PageUp) ||
-               match_key_code(&in, KeyCode_Up)){
+                 match_key_code(&in, KeyCode_Up)){
         change_scan = Scan_Backward;
         do_scan_action = true;
       }
@@ -1232,9 +1232,9 @@ query_replace_base(Application_Links *app, View_ID view, Buffer_ID buffer_id, i6
 
     i64 size = buffer_get_size(app, buffer_id);
     if (match.max <= size &&
-        (match_key_code(&in, KeyCode_Y) ||
-         match_key_code(&in, KeyCode_Return) ||
-         match_key_code(&in, KeyCode_Tab))){
+          (match_key_code(&in, KeyCode_Y) ||
+             match_key_code(&in, KeyCode_Return) ||
+             match_key_code(&in, KeyCode_Tab))){
       buffer_replace_range(app, buffer_id, match, w);
       pos = match.start + w.size;
     }
@@ -1354,7 +1354,7 @@ CUSTOM_DOC("Read from the top of the point stack and jump there; if already ther
       i64 stack_pos = 0;
       if (point_stack_read_top(app, &stack_buffer, &stack_pos)){
         if (stack_buffer != 0 &&
-            (stack_buffer != buffer || stack_pos != pos)){
+              (stack_buffer != buffer || stack_pos != pos)){
           view_set_buffer(app, view, stack_buffer, 0);
           view_set_cursor_and_preferred_x(app, view, seek_pos(stack_pos));
           break;
@@ -1375,13 +1375,13 @@ delete_file_base(Application_Links *app, String_Const_u8 file_name, Buffer_ID bu
   String_Const_u8 path = string_remove_last_folder(file_name);
   Scratch_Block scratch(app);
   List_String_Const_u8 list = {};
-#if OS_WINDOWS
+  #if OS_WINDOWS
   string_list_push_u8_lit(scratch, &list, "del ");
-#elif OS_LINUX || OS_MAC
+  #elif OS_LINUX || OS_MAC
   string_list_push_u8_lit(scratch, &list, "rm ");
-#else
-# error no delete file command for this platform
-#endif
+  #else
+  # error no delete file command for this platform
+  #endif
   string_list_pushf(scratch, &list, "\"%S\"", file_name);
   String_Const_u8 cmd = string_list_flatten(scratch, list, StringFill_NullTerminate);
   exec_system_command(app, 0, buffer_identifier(0), path, cmd, 0);
@@ -1572,7 +1572,7 @@ CUSTOM_DOC("Delete the line the on which the cursor sits.")
   i32 size = (i32)buffer_get_size(app, buffer);
   range.end = clamp_top(range.end, size);
   if (range_size(range) == 0 ||
-      buffer_get_char(app, buffer, range.end - 1) != '\n'){
+        buffer_get_char(app, buffer, range.end - 1) != '\n'){
     range.start -= 1;
     range.first = clamp_bot(0, range.first);
   }
@@ -1764,7 +1764,7 @@ CUSTOM_DOC("Reopen the current buffer from the hard drive.")
 internal i64
 record_get_new_cursor_position_undo(Application_Links *app, Buffer_ID buffer_id, History_Record_Index index, Record_Info record){
   i64 new_edit_position = record.pos_before_edit;
-#if 0
+  #if 0
   switch (record.kind){
     default:
     case RecordKind_Single:
@@ -1777,7 +1777,7 @@ record_get_new_cursor_position_undo(Application_Links *app, Buffer_ID buffer_id,
       new_edit_position = (i32)(sub_record.single_first + sub_record.single_string_backward.size);
     }break;
   }
-#endif
+  #endif
   return(new_edit_position);
 }
 
@@ -1828,7 +1828,7 @@ undo__flush_fades(Application_Links *app, Buffer_ID buffer){
        node = next){
     next = node->next;
     if (node->buffer_id == buffer &&
-        node->finish_call == undo__fade_finish){
+          node->finish_call == undo__fade_finish){
       undo__fade_finish(app, node);
       *prev_next = next;
       free_fade_range(node);
@@ -1857,9 +1857,9 @@ CUSTOM_DOC("Advances backwards through the undo history of the current buffer.")
     f32 undo_fade_time = 0.33f;
     b32 enable_undo_fade_out = def_get_config_b32(vars_save_string_lit("enable_undo_fade_out"));
     if (enable_undo_fade_out &&
-        undo_fade_time > 0.f &&
-        record.kind == RecordKind_Single &&
-        record.single_string_backward.size == 0){
+          undo_fade_time > 0.f &&
+          record.kind == RecordKind_Single &&
+          record.single_string_backward.size == 0){
       b32 has_hard_character = false;
       for (u64 i = 0; i < record.single_string_forward.size; i += 1){
         if (!character_is_whitespace(record.single_string_forward.str[i])){

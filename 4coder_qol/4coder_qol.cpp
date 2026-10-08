@@ -128,6 +128,7 @@ void custom_layer_init(Application_Links *app){
   qol_lang_register(Lang_Cpp, lex_full_input_async_cpp, lex_full_input_cpp, cpp_parse_file, qol_get_token_color_cpp);
   qol_lang_register(Lang_Lua, lex_full_input_async_lua, lex_full_input_lua, lua_parse_file, qol_get_token_color_lua);
 
+
   // Set up custom layer hooks
   {
     set_custom_hook(app, HookID_BufferViewerUpdate, default_view_adjust);

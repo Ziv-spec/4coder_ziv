@@ -464,3 +464,53 @@ CUSTOM_DOC("Deletes everything from the cursor to the end of the line.")
 }
 
 
+//~
+
+
+CUSTOM_COMMAND_SIG(zk_find_divider_up_or_notepadlike_highlight)
+CUSTOM_DOC("[ZK] Find //- divider above cursor")
+{
+  if (fcoder_mode == FCoderMode_NotepadLike) {
+    move_up_to_blank_line_end(app);
+  }
+  else {
+    qol_find_divider(app, Scan_Backward);
+  }
+}
+
+CUSTOM_COMMAND_SIG(zk_find_divider_down_or_notepadlike_highlight)
+CUSTOM_DOC("[ZK] Find //- divider below cursor in orignal mode, on notepad mode highlights")
+{
+  if (fcoder_mode == FCoderMode_NotepadLike) {
+    move_down_to_blank_line_end(app);
+  }
+  else {
+    qol_find_divider(app, Scan_Forward);
+  }
+}
+
+
+CUSTOM_COMMAND_SIG(zk_mouse_wheel_scroll)
+CUSTOM_DOC("Reads the scroll wheel value from the mouse state and scrolls accordingly.")
+{
+  View_ID view = get_active_view(app, Access_ReadVisible);
+  Mouse_State mouse = get_mouse_state(app);
+  if (mouse.wheel != 0){
+    Buffer_Scroll scroll = view_get_buffer_scroll(app, view);
+    scroll.target = view_move_buffer_point(app, view, scroll.target, V2f32(0.f, (f32)mouse.wheel));
+
+    if (fcoder_mode == FCoderMode_NotepadLike) {
+      // Support correct notepad like behavior
+      view_set_buffer_scroll(app, view, scroll, SetBufferScroll_NoCursorChange);
+      no_mark_snap_to_cursor(app, view);
+    }
+    else {
+      view_set_buffer_scroll(app, view, scroll, SetBufferScroll_SnapCursorIntoView);
+    }
+  }
+  if (mouse.l){
+    i64 pos = view_pos_from_xy(app, view, V2f32(mouse.p));
+    view_set_cursor_and_preferred_x(app, view, seek_pos(pos));
+    no_mark_snap_to_cursor(app, view);
+  }
+}

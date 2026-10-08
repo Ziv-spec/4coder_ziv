@@ -102,11 +102,11 @@ setup_built_in_mapping(Application_Links *app, String_Const_u8 name, Mapping *ma
   else if (string_match(name, string_u8_litexpr("choose"))){
     mapping_release(tctx, mapping);
     mapping_init(tctx, mapping);
-#if OS_MAC
+    #if OS_MAC
     setup_mac_mapping(mapping, global_id, file_id, code_id);
-#else
+    #else
     setup_default_mapping(mapping, global_id, file_id, code_id);
-#endif
+    #endif
   }
 }
 
@@ -172,7 +172,7 @@ def_config_parser_inc(Config_Parser *ctx){
   Token *opl = ctx->opl;
   for (t += 1;
        t < opl && (t->kind == TokenBaseKind_Comment ||
-                   t->kind == TokenBaseKind_Whitespace);
+                     t->kind == TokenBaseKind_Whitespace);
        t += 1);
   ctx->token = t;
 }
@@ -212,7 +212,7 @@ def_config_parser_recognize_boolean(Config_Parser *ctx){
   Token *token = ctx->token;
   if (ctx->token < ctx->opl){
     result = (token->sub_kind == TokenCppKind_LiteralTrue ||
-              token->sub_kind == TokenCppKind_LiteralFalse);
+                token->sub_kind == TokenCppKind_LiteralFalse);
   }
   return(result);
 }
@@ -377,11 +377,11 @@ def_config_parser_assignment(Config_Parser *ctx){
   Config_RValue *r = def_config_parser_rvalue(ctx);
   if (r == 0){
     def_config_parser_push_error_here(ctx, "expected an r-value; r-value formats:\n"
-                                      "\tconstants (true, false, integers, hexadecimal integers, strings, characters)\n"
-                                      "\tany l-value that is set in the file\n"
-                                      "\tcompound: '{ compound-element, compound-element, compound-element ...}'\n"
-                                      "\ta compound-element is an r-value, and can have a layout specifier\n"
-                                      "\tcompound-element with layout specifier: .name = r-value, .integer = r-value");
+                                        "\tconstants (true, false, integers, hexadecimal integers, strings, characters)\n"
+                                        "\tany l-value that is set in the file\n"
+                                        "\tcompound: '{ compound-element, compound-element, compound-element ...}'\n"
+                                        "\ta compound-element is an r-value, and can have a layout specifier\n"
+                                        "\tcompound-element with layout specifier: .name = r-value, .integer = r-value");
     def_config_parser_recover(ctx);
     return(0);
   }

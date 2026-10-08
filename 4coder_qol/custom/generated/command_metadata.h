@@ -2,7 +2,7 @@
 #define command_id(c) (fcoder_metacmd_ID_##c)
 #define command_metadata(c) (&fcoder_metacmd_table[command_id(c)])
 #define command_metadata_by_id(id) (&fcoder_metacmd_table[id])
-#define command_one_past_last_id 355
+#define command_one_past_last_id 358
 #if defined(CUSTOM_COMMAND_SIG)
 #define PROC_LINKS(x,y) x
 #else
@@ -356,12 +356,15 @@ void write_text_input(struct Application_Links *app);
 void write_todo(struct Application_Links *app);
 void write_underscore(struct Application_Links *app);
 void write_zero_struct(struct Application_Links *app);
+void zk_find_divider_down_or_notepadlike_highlight(struct Application_Links *app);
+void zk_find_divider_up_or_notepadlike_highlight(struct Application_Links *app);
 void zk_go_to_definition_other_panel(struct Application_Links *app);
 void zk_go_to_definition_same_panel(struct Application_Links *app);
 void zk_jump_to_definition_lister(struct Application_Links *app);
 void zk_kill_rectangle(struct Application_Links *app);
 void zk_list_all_locations(struct Application_Links *app);
 void zk_mouse_column_toggle(struct Application_Links *app);
+void zk_mouse_wheel_scroll(struct Application_Links *app);
 void zk_reverse_search(struct Application_Links *app);
 void zk_search(struct Application_Links *app);
 void zk_startup(struct Application_Links *app);
@@ -380,15 +383,15 @@ i32 source_name_len;
 i32 line_number;
 };
 
-static Command_Metadata fcoder_metacmd_table[355] = {
-{ PROC_LINKS(MC_add_at_pos, 0), 0, false, "MC_add_at_pos", 13, "[MC] adds multi-cursor at current pos", 37, "E:\\dev\\4coder_ziv\\4coder_qol\\plugins\\4coder_multi_cursor.cpp", 60, 375 },
-{ PROC_LINKS(MC_begin_multi, 0), 0, false, "MC_begin_multi", 14, "[MC] begins multi-cursors", 25, "E:\\dev\\4coder_ziv\\4coder_qol\\plugins\\4coder_multi_cursor.cpp", 60, 388 },
-{ PROC_LINKS(MC_begin_multi_block, 0), 0, false, "MC_begin_multi_block", 20, "[MC] begins multi-cursor using cursor-mark block-rect", 53, "E:\\dev\\4coder_ziv\\4coder_qol\\plugins\\4coder_multi_cursor.cpp", 60, 414 },
-{ PROC_LINKS(MC_del_at_pos, 0), 0, false, "MC_del_at_pos", 13, "[MC] deletes multi-cursor at current pos", 40, "E:\\dev\\4coder_ziv\\4coder_qol\\plugins\\4coder_multi_cursor.cpp", 60, 381 },
-{ PROC_LINKS(MC_down_trail, 0), 0, false, "MC_down_trail", 13, "[MC] moves down, leaving a multi-cursor behind it", 49, "E:\\dev\\4coder_ziv\\4coder_qol\\plugins\\4coder_multi_cursor.cpp", 60, 407 },
-{ PROC_LINKS(MC_end_multi, 0), 2, false, "MC_end_multi", 12, "[MC] ends multi-cursors", 23, "E:\\dev\\4coder_ziv\\4coder_qol\\plugins\\4coder_multi_cursor.cpp", 60, 394 },
-{ PROC_LINKS(MC_error_fade, 0), 1, false, "MC_error_fade", 13, "[MC] display error fades", 24, "E:\\dev\\4coder_ziv\\4coder_qol\\plugins\\4coder_multi_cursor.cpp", 60, 366 },
-{ PROC_LINKS(MC_up_trail, 0), 0, false, "MC_up_trail", 11, "[MC] moves up, leaving a multi-cursor behind it", 47, "E:\\dev\\4coder_ziv\\4coder_qol\\plugins\\4coder_multi_cursor.cpp", 60, 400 },
+static Command_Metadata fcoder_metacmd_table[358] = {
+{ PROC_LINKS(MC_add_at_pos, 0), 0, false, "MC_add_at_pos", 13, "[MC] adds multi-cursor at current pos", 37, "E:\\dev\\4coder_ziv\\4coder_qol\\plugins\\4coder_multi_cursor.cpp", 60, 413 },
+{ PROC_LINKS(MC_begin_multi, 0), 0, false, "MC_begin_multi", 14, "[MC] begins multi-cursors", 25, "E:\\dev\\4coder_ziv\\4coder_qol\\plugins\\4coder_multi_cursor.cpp", 60, 426 },
+{ PROC_LINKS(MC_begin_multi_block, 0), 0, false, "MC_begin_multi_block", 20, "[MC] begins multi-cursor using cursor-mark block-rect", 53, "E:\\dev\\4coder_ziv\\4coder_qol\\plugins\\4coder_multi_cursor.cpp", 60, 452 },
+{ PROC_LINKS(MC_del_at_pos, 0), 0, false, "MC_del_at_pos", 13, "[MC] deletes multi-cursor at current pos", 40, "E:\\dev\\4coder_ziv\\4coder_qol\\plugins\\4coder_multi_cursor.cpp", 60, 419 },
+{ PROC_LINKS(MC_down_trail, 0), 0, false, "MC_down_trail", 13, "[MC] moves down, leaving a multi-cursor behind it", 49, "E:\\dev\\4coder_ziv\\4coder_qol\\plugins\\4coder_multi_cursor.cpp", 60, 445 },
+{ PROC_LINKS(MC_end_multi, 0), 2, false, "MC_end_multi", 12, "[MC] ends multi-cursors", 23, "E:\\dev\\4coder_ziv\\4coder_qol\\plugins\\4coder_multi_cursor.cpp", 60, 432 },
+{ PROC_LINKS(MC_error_fade, 0), 1, false, "MC_error_fade", 13, "[MC] display error fades", 24, "E:\\dev\\4coder_ziv\\4coder_qol\\plugins\\4coder_multi_cursor.cpp", 60, 404 },
+{ PROC_LINKS(MC_up_trail, 0), 0, false, "MC_up_trail", 11, "[MC] moves up, leaving a multi-cursor behind it", 47, "E:\\dev\\4coder_ziv\\4coder_qol\\plugins\\4coder_multi_cursor.cpp", 60, 438 },
 { PROC_LINKS(TAB_close, 0), 0, false, "TAB_close", 9, "[TAB] closes current tab", 24, "E:\\dev\\4coder_ziv\\4coder_qol\\plugins\\4coder_tabs.cpp", 52, 513 },
 { PROC_LINKS(TAB_new, 0), 0, false, "TAB_new", 7, "[TAB] create new tab with current buffer", 40, "E:\\dev\\4coder_ziv\\4coder_qol\\plugins\\4coder_tabs.cpp", 52, 501 },
 { PROC_LINKS(TAB_next, 0), 0, false, "TAB_next", 8, "[TAB] switch to next tab in list", 32, "E:\\dev\\4coder_ziv\\4coder_qol\\plugins\\4coder_tabs.cpp", 52, 487 },
@@ -601,27 +604,27 @@ static Command_Metadata fcoder_metacmd_table[355] = {
 { PROC_LINKS(qol_bview_scroll_down, 0), 2, false, "qol_bview_scroll_down", 21, "[QOL] Scolls bottom view down", 29, "E:\\dev\\4coder_ziv\\4coder_qol\\4coder_qol_bview.cpp", 49, 52 },
 { PROC_LINKS(qol_bview_scroll_up, 0), 2, false, "qol_bview_scroll_up", 19, "[QOL] Scrolls bottom view up", 28, "E:\\dev\\4coder_ziv\\4coder_qol\\4coder_qol_bview.cpp", 49, 43 },
 { PROC_LINKS(qol_bview_toggle, 0), 2, false, "qol_bview_toggle", 16, "[QOL] Toggles bottom view open/close", 36, "E:\\dev\\4coder_ziv\\4coder_qol\\4coder_qol_bview.cpp", 49, 16 },
-{ PROC_LINKS(qol_char_backward, 0), 1, false, "qol_char_backward", 17, "[QOL] Seeks back in current line to the selected char", 53, "E:\\dev\\4coder_ziv\\4coder_qol\\4coder_qol_commands.cpp", 52, 320 },
-{ PROC_LINKS(qol_char_forward, 0), 1, false, "qol_char_forward", 16, "[QOL] Seeks forward in current line to the selected char", 56, "E:\\dev\\4coder_ziv\\4coder_qol\\4coder_qol_commands.cpp", 52, 310 },
+{ PROC_LINKS(qol_char_backward, 0), 1, false, "qol_char_backward", 17, "[QOL] Seeks back in current line to the selected char", 53, "E:\\dev\\4coder_ziv\\4coder_qol\\4coder_qol_commands.cpp", 52, 322 },
+{ PROC_LINKS(qol_char_forward, 0), 1, false, "qol_char_forward", 16, "[QOL] Seeks forward in current line to the selected char", 56, "E:\\dev\\4coder_ziv\\4coder_qol\\4coder_qol_commands.cpp", 52, 312 },
 { PROC_LINKS(qol_clear_jumps, 0), 2, false, "qol_clear_jumps", 15, "[QOL] Clears any jump highlights", 32, "E:\\dev\\4coder_ziv\\4coder_qol\\4coder_qol_commands.cpp", 52, 33 },
-{ PROC_LINKS(qol_column_toggle, 0), 2, false, "qol_column_toggle", 17, "[QOL] Toggles the column for bumping and selects hovered char", 61, "E:\\dev\\4coder_ziv\\4coder_qol\\4coder_qol_commands.cpp", 52, 330 },
+{ PROC_LINKS(qol_column_toggle, 0), 2, false, "qol_column_toggle", 17, "[QOL] Toggles the column for bumping and selects hovered char", 61, "E:\\dev\\4coder_ziv\\4coder_qol\\4coder_qol_commands.cpp", 52, 332 },
 { PROC_LINKS(qol_ctrl_backspace, 0), 1, false, "qol_ctrl_backspace", 18, "[QOL] Standard ctrl-backspace", 29, "E:\\dev\\4coder_ziv\\4coder_qol\\4coder_qol_commands.cpp", 52, 272 },
-{ PROC_LINKS(qol_ctrl_backwards, 0), 1, false, "qol_ctrl_backwards", 18, "[QOL] Standard ctrl-left", 24, "E:\\dev\\4coder_ziv\\4coder_qol\\4coder_qol_commands.cpp", 52, 286 },
+{ PROC_LINKS(qol_ctrl_backwards, 0), 1, false, "qol_ctrl_backwards", 18, "[QOL] Standard ctrl-left", 24, "E:\\dev\\4coder_ziv\\4coder_qol\\4coder_qol_commands.cpp", 52, 287 },
 { PROC_LINKS(qol_ctrl_delete, 0), 1, false, "qol_ctrl_delete", 15, "[QOL] Standard ctrl-delete", 26, "E:\\dev\\4coder_ziv\\4coder_qol\\4coder_qol_commands.cpp", 52, 265 },
 { PROC_LINKS(qol_ctrl_forwards, 0), 1, false, "qol_ctrl_forwards", 17, "[QOL] Standard ctrl-right", 25, "E:\\dev\\4coder_ziv\\4coder_qol\\4coder_qol_commands.cpp", 52, 279 },
 { PROC_LINKS(qol_explorer, 0), 2, false, "qol_explorer", 12, "[QOL] Opens file explorer in cwd", 32, "E:\\dev\\4coder_ziv\\4coder_qol\\4coder_qol_commands.cpp", 52, 207 },
-{ PROC_LINKS(qol_find_divider_down, 0), 0, false, "qol_find_divider_down", 21, "[QOL] Find //- divider below cursor", 35, "E:\\dev\\4coder_ziv\\4coder_qol\\4coder_qol_commands.cpp", 52, 520 },
-{ PROC_LINKS(qol_find_divider_up, 0), 0, false, "qol_find_divider_up", 19, "[QOL] Find //- divider above cursor", 35, "E:\\dev\\4coder_ziv\\4coder_qol\\4coder_qol_commands.cpp", 52, 514 },
+{ PROC_LINKS(qol_find_divider_down, 0), 0, false, "qol_find_divider_down", 21, "[QOL] Find //- divider below cursor", 35, "E:\\dev\\4coder_ziv\\4coder_qol\\4coder_qol_commands.cpp", 52, 522 },
+{ PROC_LINKS(qol_find_divider_up, 0), 0, false, "qol_find_divider_up", 19, "[QOL] Find //- divider above cursor", 35, "E:\\dev\\4coder_ziv\\4coder_qol\\4coder_qol_commands.cpp", 52, 516 },
 { PROC_LINKS(qol_format_all_buffers, 0), 0, false, "qol_format_all_buffers", 22, "[QOL] Auto-indent and remove blank lines for all loaded buffers", 63, "E:\\dev\\4coder_ziv\\4coder_qol\\4coder_qol_reformat.cpp", 52, 105 },
 { PROC_LINKS(qol_home, 0), 1, false, "qol_home", 8, "[QOL] Seeks the cursor to the beginning of the visual line", 58, "E:\\dev\\4coder_ziv\\4coder_qol\\4coder_qol_commands.cpp", 52, 39 },
 { PROC_LINKS(qol_jump_down, 0), 0, false, "qol_jump_down", 13, "[QOL] Jump down the view's jump stack", 37, "E:\\dev\\4coder_ziv\\4coder_qol\\4coder_qol_jumps.cpp", 49, 108 },
 { PROC_LINKS(qol_jump_to_definition, 0), 2, false, "qol_jump_to_definition", 22, "[QOL] Jump to the definition in the code index matching an identifier at the cursor", 83, "E:\\dev\\4coder_ziv\\4coder_qol\\4coder_qol_commands.cpp", 52, 49 },
 { PROC_LINKS(qol_jump_up, 0), 0, false, "qol_jump_up", 11, "[QOL] Jump back up the view's jump stack", 40, "E:\\dev\\4coder_ziv\\4coder_qol\\4coder_qol_jumps.cpp", 49, 125 },
-{ PROC_LINKS(qol_kill_rectangle, 0), 0, false, "qol_kill_rectangle", 18, "[QOL] Prompt deletion of text in the cursor/mark rectangle", 58, "E:\\dev\\4coder_ziv\\4coder_qol\\4coder_qol_commands.cpp", 52, 558 },
+{ PROC_LINKS(qol_kill_rectangle, 0), 0, false, "qol_kill_rectangle", 18, "[QOL] Prompt deletion of text in the cursor/mark rectangle", 58, "E:\\dev\\4coder_ziv\\4coder_qol\\4coder_qol_commands.cpp", 52, 560 },
 { PROC_LINKS(qol_loc, 0), 2, false, "qol_loc", 7, "[QOL] Prints Lines of Code", 26, "E:\\dev\\4coder_ziv\\4coder_qol\\4coder_qol_commands.cpp", 52, 187 },
-{ PROC_LINKS(qol_modal_return, 0), 1, false, "qol_modal_return", 16, "[QOL] Either goto_jump_at_cursor or writes newline and completes {} when appropriate", 84, "E:\\dev\\4coder_ziv\\4coder_qol\\4coder_qol_commands.cpp", 52, 403 },
-{ PROC_LINKS(qol_move_selection_down, 0), 1, false, "qol_move_selection_down", 23, "[QOL] Move selected lines down 1 line", 37, "E:\\dev\\4coder_ziv\\4coder_qol\\4coder_qol_commands.cpp", 52, 475 },
-{ PROC_LINKS(qol_move_selection_up, 0), 1, false, "qol_move_selection_up", 21, "[QOL] Move selected lines up 1 line", 35, "E:\\dev\\4coder_ziv\\4coder_qol\\4coder_qol_commands.cpp", 52, 469 },
+{ PROC_LINKS(qol_modal_return, 0), 1, false, "qol_modal_return", 16, "[QOL] Either goto_jump_at_cursor or writes newline and completes {} when appropriate", 84, "E:\\dev\\4coder_ziv\\4coder_qol\\4coder_qol_commands.cpp", 52, 405 },
+{ PROC_LINKS(qol_move_selection_down, 0), 1, false, "qol_move_selection_down", 23, "[QOL] Move selected lines down 1 line", 37, "E:\\dev\\4coder_ziv\\4coder_qol\\4coder_qol_commands.cpp", 52, 477 },
+{ PROC_LINKS(qol_move_selection_up, 0), 1, false, "qol_move_selection_up", 21, "[QOL] Move selected lines up 1 line", 35, "E:\\dev\\4coder_ziv\\4coder_qol\\4coder_qol_commands.cpp", 52, 471 },
 { PROC_LINKS(qol_reformat_current, 0), 0, false, "qol_reformat_current", 20, "[QOL] reformat buffer via code index", 36, "E:\\dev\\4coder_ziv\\4coder_qol\\4coder_qol_reformat.cpp", 52, 98 },
 { PROC_LINKS(qol_reload_bindings, 0), 2, false, "qol_reload_bindings", 19, "[QOL] Reloads the bindings.4coder file", 38, "E:\\dev\\4coder_ziv\\4coder_qol\\4coder_qol_commands.cpp", 52, 143 },
 { PROC_LINKS(qol_reload_config, 0), 2, false, "qol_reload_config", 17, "[QOL] Reloads the config.4coder file", 36, "E:\\dev\\4coder_ziv\\4coder_qol\\4coder_qol_commands.cpp", 52, 114 },
@@ -634,11 +637,11 @@ static Command_Metadata fcoder_metacmd_table[355] = {
 { PROC_LINKS(qol_snippet_begin, 0), 0, false, "qol_snippet_begin", 17, "[QOL] Opens *qol_snippet* empty buffer", 38, "E:\\dev\\4coder_ziv\\4coder_qol\\4coder_qol_snippets.cpp", 52, 13 },
 { PROC_LINKS(qol_snippet_end, 0), 0, false, "qol_snippet_end", 15, "[QOL] ", 6, "E:\\dev\\4coder_ziv\\4coder_qol\\4coder_qol_snippets.cpp", 52, 23 },
 { PROC_LINKS(qol_startup, 0), 0, false, "qol_startup", 11, "QOL command for responding to a startup event", 45, "E:\\dev\\4coder_ziv\\4coder_qol\\4coder_qol_hooks.cpp", 49, 2 },
-{ PROC_LINKS(qol_try_exit, 0), 2, false, "qol_try_exit", 12, "[QOL] response to a try-exit event", 34, "E:\\dev\\4coder_ziv\\4coder_qol\\4coder_qol_commands.cpp", 52, 595 },
+{ PROC_LINKS(qol_try_exit, 0), 2, false, "qol_try_exit", 12, "[QOL] response to a try-exit event", 34, "E:\\dev\\4coder_ziv\\4coder_qol\\4coder_qol_commands.cpp", 52, 597 },
 { PROC_LINKS(qol_view_input_handler, 0), 0, false, "qol_view_input_handler", 22, "QOL Input consumption loop for views", 36, "E:\\dev\\4coder_ziv\\4coder_qol\\4coder_qol_hooks.cpp", 49, 256 },
-{ PROC_LINKS(qol_write_space, 0), 1, false, "qol_write_space", 15, "[QOL] Writes as many spaces needed for bumping to column", 56, "E:\\dev\\4coder_ziv\\4coder_qol\\4coder_qol_commands.cpp", 52, 357 },
-{ PROC_LINKS(qol_write_text_and_auto_indent, 0), 1, false, "qol_write_text_and_auto_indent", 30, "[QOL] Inserts whatever text was used to trigger this command.", 61, "E:\\dev\\4coder_ziv\\4coder_qol\\4coder_qol_commands.cpp", 52, 394 },
-{ PROC_LINKS(qol_write_text_input, 0), 1, false, "qol_write_text_input", 20, "[QOL] Inserts whatever text was used to trigger this command.", 61, "E:\\dev\\4coder_ziv\\4coder_qol\\4coder_qol_commands.cpp", 52, 385 },
+{ PROC_LINKS(qol_write_space, 0), 1, false, "qol_write_space", 15, "[QOL] Writes as many spaces needed for bumping to column", 56, "E:\\dev\\4coder_ziv\\4coder_qol\\4coder_qol_commands.cpp", 52, 359 },
+{ PROC_LINKS(qol_write_text_and_auto_indent, 0), 1, false, "qol_write_text_and_auto_indent", 30, "[QOL] Inserts whatever text was used to trigger this command.", 61, "E:\\dev\\4coder_ziv\\4coder_qol\\4coder_qol_commands.cpp", 52, 396 },
+{ PROC_LINKS(qol_write_text_input, 0), 1, false, "qol_write_text_input", 20, "[QOL] Inserts whatever text was used to trigger this command.", 61, "E:\\dev\\4coder_ziv\\4coder_qol\\4coder_qol_commands.cpp", 52, 387 },
 { PROC_LINKS(query_replace, 0), 0, false, "query_replace", 13, "Queries the user for two strings, and incrementally replaces every occurence of the first string with the second string.", 120, "E:\\dev\\4coder_ziv\\4coder_qol\\custom\\4coder_base_commands.cpp", 60, 1290 },
 { PROC_LINKS(query_replace_identifier, 0), 0, false, "query_replace_identifier", 24, "Queries the user for a string, and incrementally replace every occurence of the word or token found at the cursor with the specified string.", 140, "E:\\dev\\4coder_ziv\\4coder_qol\\custom\\4coder_base_commands.cpp", 60, 1311 },
 { PROC_LINKS(query_replace_selection, 0), 0, false, "query_replace_selection", 23, "Queries the user for a string, and incrementally replace every occurence of the string found in the selected range with the specified string.", 141, "E:\\dev\\4coder_ziv\\4coder_qol\\custom\\4coder_base_commands.cpp", 60, 1327 },
@@ -727,12 +730,15 @@ static Command_Metadata fcoder_metacmd_table[355] = {
 { PROC_LINKS(write_todo, 0), 1, false, "write_todo", 10, "At the cursor, insert a '// TODO' comment, includes user name if it was specified in config.4coder.", 99, "E:\\dev\\4coder_ziv\\4coder_qol\\custom\\4coder_combined_write_commands.cpp", 70, 76 },
 { PROC_LINKS(write_underscore, 0), 1, false, "write_underscore", 16, "Inserts an underscore.", 22, "E:\\dev\\4coder_ziv\\4coder_qol\\custom\\4coder_base_commands.cpp", 60, 73 },
 { PROC_LINKS(write_zero_struct, 0), 1, false, "write_zero_struct", 17, "At the cursor, insert a ' = {};'.", 33, "E:\\dev\\4coder_ziv\\4coder_qol\\custom\\4coder_combined_write_commands.cpp", 70, 100 },
+{ PROC_LINKS(zk_find_divider_down_or_notepadlike_highlight, 0), 0, false, "zk_find_divider_down_or_notepadlike_highlight", 45, "[ZK] Find //- divider below cursor in orignal mode, on notepad mode highlights", 78, "E:\\dev\\4coder_ziv\\4coder_zk\\4coder_zk_commands.cpp", 50, 481 },
+{ PROC_LINKS(zk_find_divider_up_or_notepadlike_highlight, 0), 0, false, "zk_find_divider_up_or_notepadlike_highlight", 43, "[ZK] Find //- divider above cursor", 34, "E:\\dev\\4coder_ziv\\4coder_zk\\4coder_zk_commands.cpp", 50, 470 },
 { PROC_LINKS(zk_go_to_definition_other_panel, 0), 2, false, "zk_go_to_definition_other_panel", 31, "[ZK] Jump to the definition of identifier at the cursor other panel", 67, "E:\\dev\\4coder_ziv\\4coder_zk\\4coder_zk_commands.cpp", 50, 341 },
 { PROC_LINKS(zk_go_to_definition_same_panel, 0), 2, false, "zk_go_to_definition_same_panel", 30, "[ZK] Jump to the definition of identifier at the cursor", 55, "E:\\dev\\4coder_ziv\\4coder_zk\\4coder_zk_commands.cpp", 50, 335 },
 { PROC_LINKS(zk_jump_to_definition_lister, 0), 0, true, "zk_jump_to_definition_lister", 28, "List all definitions in the code index and jump to one chosen by the user.", 74, "E:\\dev\\4coder_ziv\\4coder_zk\\4coder_zk_commands.cpp", 50, 40 },
 { PROC_LINKS(zk_kill_rectangle, 0), 0, false, "zk_kill_rectangle", 17, "[QOL] Prompt deletion of text in the cursor/mark rectangle", 58, "E:\\dev\\4coder_ziv\\4coder_zk\\4coder_zk_commands.cpp", 50, 411 },
 { PROC_LINKS(zk_list_all_locations, 0), 0, false, "zk_list_all_locations", 21, "[zk] Queries the user for a string and lists all exact case-insensitive matches found in all open buffers.", 106, "E:\\dev\\4coder_ziv\\4coder_zk\\4coder_zk_search.cpp", 48, 280 },
 { PROC_LINKS(zk_mouse_column_toggle, 0), 2, false, "zk_mouse_column_toggle", 22, "[ZK] Toggles the column for bumping and selects hovered char at mouse position", 78, "E:\\dev\\4coder_ziv\\4coder_zk\\4coder_zk_commands.cpp", 50, 350 },
+{ PROC_LINKS(zk_mouse_wheel_scroll, 0), 0, false, "zk_mouse_wheel_scroll", 21, "Reads the scroll wheel value from the mouse state and scrolls accordingly.", 74, "E:\\dev\\4coder_ziv\\4coder_zk\\4coder_zk_commands.cpp", 50, 493 },
 { PROC_LINKS(zk_reverse_search, 0), 0, false, "zk_reverse_search", 17, "[ZK] I-search up", 16, "E:\\dev\\4coder_ziv\\4coder_zk\\4coder_zk_search.cpp", 48, 1195 },
 { PROC_LINKS(zk_search, 0), 0, false, "zk_search", 9, "[ZK] I-search down", 18, "E:\\dev\\4coder_ziv\\4coder_zk\\4coder_zk_search.cpp", 48, 1189 },
 { PROC_LINKS(zk_startup, 0), 0, false, "zk_startup", 10, "ZK command for responding to a startup event", 44, "E:\\dev\\4coder_ziv\\4coder_zk\\4coder_zk_hooks.cpp", 47, 2 },
@@ -1084,13 +1090,16 @@ static i32 fcoder_metacmd_ID_write_text_input = 342;
 static i32 fcoder_metacmd_ID_write_todo = 343;
 static i32 fcoder_metacmd_ID_write_underscore = 344;
 static i32 fcoder_metacmd_ID_write_zero_struct = 345;
-static i32 fcoder_metacmd_ID_zk_go_to_definition_other_panel = 346;
-static i32 fcoder_metacmd_ID_zk_go_to_definition_same_panel = 347;
-static i32 fcoder_metacmd_ID_zk_jump_to_definition_lister = 348;
-static i32 fcoder_metacmd_ID_zk_kill_rectangle = 349;
-static i32 fcoder_metacmd_ID_zk_list_all_locations = 350;
-static i32 fcoder_metacmd_ID_zk_mouse_column_toggle = 351;
-static i32 fcoder_metacmd_ID_zk_reverse_search = 352;
-static i32 fcoder_metacmd_ID_zk_search = 353;
-static i32 fcoder_metacmd_ID_zk_startup = 354;
+static i32 fcoder_metacmd_ID_zk_find_divider_down_or_notepadlike_highlight = 346;
+static i32 fcoder_metacmd_ID_zk_find_divider_up_or_notepadlike_highlight = 347;
+static i32 fcoder_metacmd_ID_zk_go_to_definition_other_panel = 348;
+static i32 fcoder_metacmd_ID_zk_go_to_definition_same_panel = 349;
+static i32 fcoder_metacmd_ID_zk_jump_to_definition_lister = 350;
+static i32 fcoder_metacmd_ID_zk_kill_rectangle = 351;
+static i32 fcoder_metacmd_ID_zk_list_all_locations = 352;
+static i32 fcoder_metacmd_ID_zk_mouse_column_toggle = 353;
+static i32 fcoder_metacmd_ID_zk_mouse_wheel_scroll = 354;
+static i32 fcoder_metacmd_ID_zk_reverse_search = 355;
+static i32 fcoder_metacmd_ID_zk_search = 356;
+static i32 fcoder_metacmd_ID_zk_startup = 357;
 #endif

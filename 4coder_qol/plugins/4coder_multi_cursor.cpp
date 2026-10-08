@@ -145,6 +145,25 @@ function void MC_render_cursors(Application_Links *app, View_ID view, Text_Layou
   }
 }
 
+function void MC_render_notepadlike_cursors(Application_Links *app, View_ID view, Text_Layout_ID layout){
+  if (view!= mc_context.view){ return; }
+  Range_i64 visible_range = text_layout_get_visible_range(app, layout);
+  ARGB_Color cl_cursor    = fcolor_resolve(fcolor_change_alpha(fcolor_id(defcolor_cursor), mc_context.active ? 1.f : 0.8f));
+  ARGB_Color cl_highlight = fcolor_resolve(fcolor_change_alpha(fcolor_id(defcolor_highlight), mc_context.active ? 1.f : 0.8f));
+
+  for_mc (node, mc_context.cursors){
+    if (range_contains(visible_range, node->cursor_pos)){
+      draw_character_i_bar(app, layout, node->cursor_pos, cl_cursor);
+    }
+
+    if (range_contains(visible_range, node->mark_pos)){
+      Range_i64 range = Ii64(node->mark_pos, node->cursor_pos);
+      draw_character_block(app, layout, range, 0.f, cl_highlight);
+      paint_text_color_fcolor(app, layout, range, fcolor_id(defcolor_at_highlight));
+    }
+  }
+
+}
 function Implicit_Map_Result MC_implicit_map_inner(Application_Links *app, Input_Event *event, Implicit_Map_Result map_result){
   if (map_result.command != 0 && mc_context.active && mc_context.view == get_this_ctx_view(app, Access_Always)){
     if (event->kind == InputEventKind_Core && event->core.code == CoreCode_NewClipboardContents){
@@ -158,7 +177,24 @@ function Implicit_Map_Result MC_implicit_map_inner(Application_Links *app, Input
     Table_Lookup lookup = table_lookup(&mc_context.table, HandleAsU64(map_result.command));
     if (lookup.found_match){
       u64 val = mc_context.table.vals[lookup.index];
+      Managed_Scope scope = view_get_managed_scope(app, mc_context.view);
+      default_pre_command(app, scope);
       MC_apply(app, map_result.command, MC_Command_Kind(val));
+      default_post_command(app, scope);
+
+      // This is the required extention to the default_post_command
+      // it is required for the expected snapping behavior of a notepad
+      // like cursor across all multi-cursors
+      if (fcoder_mode == FCoderMode_NotepadLike && mc_context.view){
+        Managed_Scope scope_it = view_get_managed_scope(app, mc_context.view);
+        b32 *snap_mark_to_cursor = scope_attachment(app, scope_it, view_snap_mark_to_cursor, b32);
+        if (*snap_mark_to_cursor){
+          for_mc(node, mc_context.cursors) {
+            node->mark_pos = node->cursor_pos;
+          }
+        }
+      }
+
       map_result.command = MC_no_op;  // NOTE: no-op prevents erroneous leave_current_input_unhandled()
     }
     else{
@@ -310,6 +346,8 @@ function void MC_pull(Application_Links *app, View_ID view, MC_Command_Kind kind
   if (kind == MC_Command_CursorCopy){
     node->clipboard = push_clipboard_index(&mc_context.arena_clipboard, 0, 0);
   }
+
+
 }
 
 function void MC_push(Application_Links *app, View_ID view, MC_Command_Kind kind, MC_Node *node){
@@ -329,7 +367,7 @@ function void MC_apply(Application_Links *app, Custom_Command_Function *func, MC
 
   // Check that `func` should be safe to re-run
   if (view != get_active_view(app, Access_Always) ||
-      buffer != view_get_buffer(app, view, Access_Always))
+        buffer != view_get_buffer(app, view, Access_Always))
   {
     MC_end(app);
     return;

@@ -137,8 +137,8 @@ zk_render_buffer(Application_Links *app, View_ID view_id, Face_ID face_id, Buffe
   f32 cursor_roundness = metrics.normal_advance*cursor_roundness_100*0.01f;
   f32 mark_thickness = (f32)def_get_config_u64(app, vars_save_string_lit("mark_thickness"));
 
-  i64 cursor_pos = view_correct_cursor(app, view_id);
-  view_correct_mark(app, view_id);
+  i64 pos = view_get_cursor_pos(app, view_id);
+  i64 cursor_pos = view_set_pos_by_character_delta(app, view_id, pos, 0);
 
   // NOTE(allen): Line highlight
   b32 highlight_line_at_cursor = def_get_config_b32(vars_save_string_lit("highlight_line_at_cursor"));
@@ -250,7 +250,7 @@ zk_render_buffer(Application_Links *app, View_ID view_id, Face_ID face_id, Buffe
     }break;
     case FCoderMode_NotepadLike:
     {
-      draw_notepad_style_cursor_highlight(app, view_id, buffer, text_layout_id, cursor_roundness);
+      zk_draw_notepad_style_cursor_highlight(app, view_id, buffer, text_layout_id, cursor_roundness);
     }break;
   }
 

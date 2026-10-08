@@ -193,7 +193,7 @@ zk_highlight_cursor_mark_range(Application_Links *app, View_ID view_id, Text_Lay
   }
 
   Range_f32 bound = If32(qol_cur_cursor_pos.y, qol_cur_mark_pos.y);
-  draw_rectangle(app, Rf32(view_rect.x0, bound.min, view_rect.x0 + 4, bound.max+h), 3.f,
+  draw_rectangle(app, Rf32(old_clip.x0, bound.min, old_clip.x0 + 4, bound.max+h), 3.f,
                  fcolor_resolve(fcolor_change_alpha(fcolor_id(defcolor_comment), 0.5f)));
   draw_set_clip(app, old_clip);
 }
@@ -264,4 +264,25 @@ zk_draw_cursor_mark(Application_Links *app, View_ID view_id, b32 is_active_view,
   }
 
   MC_render_cursors(app, view_id, text_layout_id);
+}
+
+function void
+zk_draw_notepad_style_cursor_highlight(Application_Links *app, View_ID view_id,
+                                       Buffer_ID buffer, Text_Layout_ID text_layout_id,
+                                       f32 roundness){
+  b32 has_highlight_range = draw_highlight_range(app, view_id, buffer, text_layout_id, roundness);
+  if (!has_highlight_range){
+    i32 cursor_sub_id = default_cursor_sub_id();
+    i64 cursor_pos = view_get_cursor_pos(app, view_id);
+    i64 mark_pos = view_get_mark_pos(app, view_id);
+    if (cursor_pos != mark_pos){
+      Range_i64 range = Ii64(cursor_pos, mark_pos);
+      draw_character_block(app, text_layout_id, range, roundness, fcolor_id(defcolor_highlight));
+      paint_text_color_fcolor(app, text_layout_id, range, fcolor_id(defcolor_at_highlight));
+    }
+    draw_character_i_bar(app, text_layout_id, cursor_pos, fcolor_id(defcolor_cursor, cursor_sub_id));
+
+    MC_render_notepadlike_cursors(app, view_id, text_layout_id);
+  }
+
 }
