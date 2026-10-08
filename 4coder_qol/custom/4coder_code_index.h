@@ -24,8 +24,35 @@ enum{
   CodeIndexNest_Paren,
   CodeIndexNest_Preprocessor,
   CodeIndexNest_Statement,
+  CodeIndexNest_COUNT,
   CodeIndexNest_PProc = CodeIndexNest_Preprocessor,
   CodeIndexNest_Stmnt = CodeIndexNest_Statement,
+};
+
+enum VWS_Action{
+  VWS_ACT_Nop,
+  VWS_ACT_Reset,
+  VWS_ACT_Inc,
+  VWS_ACT_Reflex,
+};
+
+enum VWS_Q{
+  VWS_Q_Start,
+  VWS_Q_Paren,
+  VWS_Q_COUNT,
+};
+
+struct VWS_Transition{
+  VWS_Q q;
+  VWS_Action act;
+};
+
+VWS_Transition vws_table[VWS_Q_COUNT][CodeIndexNest_COUNT];
+
+struct VWS_State{
+  VWS_Q q;
+  f32 shift;
+  i64 reflex_pos;
 };
 
 struct Code_Index_Nest{
@@ -36,8 +63,8 @@ struct Code_Index_Nest{
   Range_i64 open;
   Range_i64 close;
 
-  i64 parent_x_id;
-  f32 parent_x;
+  //i64 parent_x_id;
+  //VWS_State vws_state;
 
   struct Code_Index_File *file;
   Code_Index_Nest *parent;
