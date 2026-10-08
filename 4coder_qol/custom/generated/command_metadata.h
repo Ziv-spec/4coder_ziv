@@ -384,14 +384,14 @@ i32 line_number;
 };
 
 static Command_Metadata fcoder_metacmd_table[358] = {
-{ PROC_LINKS(MC_add_at_pos, 0), 0, false, "MC_add_at_pos", 13, "[MC] adds multi-cursor at current pos", 37, "E:\\dev\\4coder_ziv\\4coder_qol\\plugins\\4coder_multi_cursor.cpp", 60, 413 },
-{ PROC_LINKS(MC_begin_multi, 0), 0, false, "MC_begin_multi", 14, "[MC] begins multi-cursors", 25, "E:\\dev\\4coder_ziv\\4coder_qol\\plugins\\4coder_multi_cursor.cpp", 60, 426 },
-{ PROC_LINKS(MC_begin_multi_block, 0), 0, false, "MC_begin_multi_block", 20, "[MC] begins multi-cursor using cursor-mark block-rect", 53, "E:\\dev\\4coder_ziv\\4coder_qol\\plugins\\4coder_multi_cursor.cpp", 60, 452 },
-{ PROC_LINKS(MC_del_at_pos, 0), 0, false, "MC_del_at_pos", 13, "[MC] deletes multi-cursor at current pos", 40, "E:\\dev\\4coder_ziv\\4coder_qol\\plugins\\4coder_multi_cursor.cpp", 60, 419 },
-{ PROC_LINKS(MC_down_trail, 0), 0, false, "MC_down_trail", 13, "[MC] moves down, leaving a multi-cursor behind it", 49, "E:\\dev\\4coder_ziv\\4coder_qol\\plugins\\4coder_multi_cursor.cpp", 60, 445 },
-{ PROC_LINKS(MC_end_multi, 0), 2, false, "MC_end_multi", 12, "[MC] ends multi-cursors", 23, "E:\\dev\\4coder_ziv\\4coder_qol\\plugins\\4coder_multi_cursor.cpp", 60, 432 },
-{ PROC_LINKS(MC_error_fade, 0), 1, false, "MC_error_fade", 13, "[MC] display error fades", 24, "E:\\dev\\4coder_ziv\\4coder_qol\\plugins\\4coder_multi_cursor.cpp", 60, 404 },
-{ PROC_LINKS(MC_up_trail, 0), 0, false, "MC_up_trail", 11, "[MC] moves up, leaving a multi-cursor behind it", 47, "E:\\dev\\4coder_ziv\\4coder_qol\\plugins\\4coder_multi_cursor.cpp", 60, 438 },
+{ PROC_LINKS(MC_add_at_pos, 0), 0, false, "MC_add_at_pos", 13, "[MC] adds multi-cursor at current pos", 37, "E:\\dev\\4coder_ziv\\4coder_qol\\plugins\\4coder_multi_cursor.cpp", 60, 415 },
+{ PROC_LINKS(MC_begin_multi, 0), 0, false, "MC_begin_multi", 14, "[MC] begins multi-cursors", 25, "E:\\dev\\4coder_ziv\\4coder_qol\\plugins\\4coder_multi_cursor.cpp", 60, 428 },
+{ PROC_LINKS(MC_begin_multi_block, 0), 0, false, "MC_begin_multi_block", 20, "[MC] begins multi-cursor using cursor-mark block-rect", 53, "E:\\dev\\4coder_ziv\\4coder_qol\\plugins\\4coder_multi_cursor.cpp", 60, 454 },
+{ PROC_LINKS(MC_del_at_pos, 0), 0, false, "MC_del_at_pos", 13, "[MC] deletes multi-cursor at current pos", 40, "E:\\dev\\4coder_ziv\\4coder_qol\\plugins\\4coder_multi_cursor.cpp", 60, 421 },
+{ PROC_LINKS(MC_down_trail, 0), 0, false, "MC_down_trail", 13, "[MC] moves down, leaving a multi-cursor behind it", 49, "E:\\dev\\4coder_ziv\\4coder_qol\\plugins\\4coder_multi_cursor.cpp", 60, 447 },
+{ PROC_LINKS(MC_end_multi, 0), 2, false, "MC_end_multi", 12, "[MC] ends multi-cursors", 23, "E:\\dev\\4coder_ziv\\4coder_qol\\plugins\\4coder_multi_cursor.cpp", 60, 434 },
+{ PROC_LINKS(MC_error_fade, 0), 1, false, "MC_error_fade", 13, "[MC] display error fades", 24, "E:\\dev\\4coder_ziv\\4coder_qol\\plugins\\4coder_multi_cursor.cpp", 60, 406 },
+{ PROC_LINKS(MC_up_trail, 0), 0, false, "MC_up_trail", 11, "[MC] moves up, leaving a multi-cursor behind it", 47, "E:\\dev\\4coder_ziv\\4coder_qol\\plugins\\4coder_multi_cursor.cpp", 60, 440 },
 { PROC_LINKS(TAB_close, 0), 0, false, "TAB_close", 9, "[TAB] closes current tab", 24, "E:\\dev\\4coder_ziv\\4coder_qol\\plugins\\4coder_tabs.cpp", 52, 513 },
 { PROC_LINKS(TAB_new, 0), 0, false, "TAB_new", 7, "[TAB] create new tab with current buffer", 40, "E:\\dev\\4coder_ziv\\4coder_qol\\plugins\\4coder_tabs.cpp", 52, 501 },
 { PROC_LINKS(TAB_next, 0), 0, false, "TAB_next", 8, "[TAB] switch to next tab in list", 32, "E:\\dev\\4coder_ziv\\4coder_qol\\plugins\\4coder_tabs.cpp", 52, 487 },

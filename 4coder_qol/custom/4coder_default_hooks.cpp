@@ -1100,7 +1100,7 @@ internal void
 set_all_default_hooks(Application_Links *app){
   set_custom_hook(app, HookID_BufferViewerUpdate, default_view_adjust);
 
-  set_custom_hook(app, HookID_ViewEventHandler, default_view_input_handler);
+  set_custom_hook(app, HookID_ViewEventHandler,  default_view_input_handler);
   set_custom_hook(app, HookID_Tick, default_tick);
   set_custom_hook(app, HookID_RenderCaller, default_render_caller);
   set_custom_hook(app, HookID_WholeScreenRenderCaller, default_whole_screen_render_caller);

@@ -155,15 +155,29 @@ function void MC_render_notepadlike_cursors(Application_Links *app, View_ID view
     if (range_contains(visible_range, node->cursor_pos)){
       draw_character_i_bar(app, layout, node->cursor_pos, cl_cursor);
     }
-
     if (range_contains(visible_range, node->mark_pos)){
       Range_i64 range = Ii64(node->mark_pos, node->cursor_pos);
       draw_character_block(app, layout, range, 0.f, cl_highlight);
       paint_text_color_fcolor(app, layout, range, fcolor_id(defcolor_at_highlight));
     }
   }
-
 }
+
+function void
+MC_post_command(Application_Links *app) {
+  // To make multi-cursor work in notepad mode we have to handle
+  // the snapping behavior that the system expect across all cursors.
+  if (fcoder_mode == FCoderMode_NotepadLike && mc_context.view){
+    Managed_Scope scope_it = view_get_managed_scope(app, mc_context.view);
+    b32 *snap_mark_to_cursor = scope_attachment(app, scope_it, view_snap_mark_to_cursor, b32);
+    if (*snap_mark_to_cursor){
+      for_mc(node, mc_context.cursors) {
+        node->mark_pos = node->cursor_pos;
+      }
+    }
+  }
+}
+
 function Implicit_Map_Result MC_implicit_map_inner(Application_Links *app, Input_Event *event, Implicit_Map_Result map_result){
   if (map_result.command != 0 && mc_context.active && mc_context.view == get_this_ctx_view(app, Access_Always)){
     if (event->kind == InputEventKind_Core && event->core.code == CoreCode_NewClipboardContents){
@@ -181,19 +195,7 @@ function Implicit_Map_Result MC_implicit_map_inner(Application_Links *app, Input
       default_pre_command(app, scope);
       MC_apply(app, map_result.command, MC_Command_Kind(val));
       default_post_command(app, scope);
-
-      // This is the required extention to the default_post_command
-      // it is required for the expected snapping behavior of a notepad
-      // like cursor across all multi-cursors
-      if (fcoder_mode == FCoderMode_NotepadLike && mc_context.view){
-        Managed_Scope scope_it = view_get_managed_scope(app, mc_context.view);
-        b32 *snap_mark_to_cursor = scope_attachment(app, scope_it, view_snap_mark_to_cursor, b32);
-        if (*snap_mark_to_cursor){
-          for_mc(node, mc_context.cursors) {
-            node->mark_pos = node->cursor_pos;
-          }
-        }
-      }
+      MC_post_command(app);
 
       map_result.command = MC_no_op;  // NOTE: no-op prevents erroneous leave_current_input_unhandled()
     }

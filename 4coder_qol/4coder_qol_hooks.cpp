@@ -307,7 +307,9 @@ CUSTOM_DOC("QOL Input consumption loop for views")
       leave_current_input_unhandled(app);
       continue;
     }
-    else if (map_result.command ==  MC_no_op) {
+    else if (map_result.command == MC_no_op) {
+      // This is only to not run qol_pre_command & qol_post_command
+      // which change some values for notepad like cursors
       continue;
     }
 

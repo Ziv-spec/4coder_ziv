@@ -181,6 +181,9 @@ void custom_layer_init(Application_Links *app){
 //   [ ] fix bug with get next intitive node
 // [ ] search
 // [x] add selection range to cursor
+// [ ] notepad cursor full support
+//   [x] selection across all neccesary commands
+//   [ ] double click to select token, triple click to select line
 //
 // Review the behavior of 'quick_swap_buffer' I remember I Had problems with it at some point
 // yeah. So the beahvior that I don't like is that when I am jumping around many files, one after
