@@ -105,29 +105,29 @@ function void MM_nest_close(Application_Links *app){
   draw_rectangle(app, Rf32(r.x0, r.y0, r.x0+1, r.y1 + g_mm_ctx.s_str.y), 0.f, g_mm_ctx.cl_nest);
 }
 
-function Code_Index_Nest* MM_last_nest(Code_Index_Nest *nest, Code_Index_Nest_Ptr_Array *array, Range_i64 range){
-  for (i64 i=0; i < array->count; i++){
-    Code_Index_Nest *n = array->ptrs[array->count-1 - i];
+function Code_Index_Nest* MM_last_nest(Code_Index_Nest *nest, Range_i64 range){
+  for (i64 i=0; i < nest->nest_array.count; i++){
+    Code_Index_Nest *n = nest->nest_array.ptrs[nest->nest_array.count-1 - i];
     if (range_overlap(range, Ii64(n->open.min, n->close.min))){
-      return MM_last_nest(n, &n->nest_array, range);
+      return MM_last_nest(n, range);
     }
   }
   return nest;
 }
 
-function b32 MM_nest_list(Arena *arena, Code_Index_Nest_Ptr_Array *array, Code_Index_Nest *last, Range_i64 range){
-  for (i64 i=0; i < array->count; i++){
-    Code_Index_Nest *nest = array->ptrs[i];
-    if (range_overlap(range, Ii64(nest->open.min, nest->close.min))){
-      if (nest->kind == CodeIndexNest_Scope){
+function b32 MM_nest_list(Arena *arena, Code_Index_Nest *nest, Code_Index_Nest *last, Range_i64 range){
+  for (i64 i=0; i < nest->nest_array.count; i++){
+    Code_Index_Nest *n = nest->nest_array.ptrs[i];
+    if (range_overlap(range, Ii64(n->open.min, n->close.min))){
+      if (n->kind == CodeIndexNest_Scope){
         MM_Node *node = push_array_zero(arena, MM_Node, 1);
-        node->p0 = nest->open.min;
-        node->p1 = nest->close.min;
+        node->p0 = n->open.min;
+        node->p1 = n->close.min;
         sll_queue_push(g_mm_ctx.head, g_mm_ctx.tail, node);
       }
-      if (nest == last || MM_nest_list(arena, &nest->nest_array, last, range)){ return true; }
+      if (n == last || MM_nest_list(arena, n, last, range)){ return true; }
     }
-    if (range.max <= nest->open.min){ break; }
+    if (range.max <= n->open.min){ break; }
   }
   return false;
 }
@@ -230,8 +230,8 @@ function Text_Layout_ID MM_begin(Application_Links *app, Arena *arena, View_ID v
     code_index_lock();
     Code_Index_File *file = code_index_get_file(buffer);
     if (file){
-      Code_Index_Nest *last = MM_last_nest(NULL, &file->nest_array, g_mm_ctx.range);
-      MM_nest_list(arena, &file->nest_array, last, g_mm_ctx.range);
+      Code_Index_Nest *last = MM_last_nest(&file->root, g_mm_ctx.range);
+      MM_nest_list(arena, &file->root, last, g_mm_ctx.range);
     }
     code_index_unlock();
   }

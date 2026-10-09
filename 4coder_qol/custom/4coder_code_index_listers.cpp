@@ -17,8 +17,8 @@ lister_fill_index(Application_Links *app, Lister *lister){
        buffer = get_buffer_next(app, buffer, Access_Always)){
     Code_Index_File *file = code_index_get_file(buffer);
     if (file != 0){
-      for (i32 i = 0; i < file->note_array.count; i += 1){
-        Code_Index_Note *note = file->note_array.ptrs[i];
+      for (i32 i = 0; i < file->root.note_array.count; i += 1){
+        Code_Index_Note *note = file->root.note_array.ptrs[i];
         Tiny_Jump *jump = push_array(lister->arena, Tiny_Jump, 1);
         jump->buffer = buffer;
         jump->pos = note->pos.first;
@@ -73,8 +73,8 @@ CUSTOM_DOC("Jump to the first definition in the code index matching an identifie
          buffer = get_buffer_next(app, buffer, Access_Always)){
       Code_Index_File *file = code_index_get_file(buffer);
       if (file != 0){
-        for (i32 i = 0; i < file->note_array.count; i += 1){
-          Code_Index_Note *note = file->note_array.ptrs[i];
+        for (i32 i = 0; i < file->root.note_array.count; i += 1){
+          Code_Index_Note *note = file->root.note_array.ptrs[i];
           if (string_match(note->text, query)){
             point_stack_push_view_cursor(app, view);
             jump_to_location(app, view, buffer, note->pos.first);

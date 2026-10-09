@@ -29,7 +29,7 @@ layout_index_x_shift(Application_Links *app, Layout_Reflex *reflex, Code_Index_F
   state.q = VWS_Q_Start;
   state.reflex_pos = -1;
 
-  Code_Index_Nest_Ptr_Array *array = &file->nest_array;
+  Code_Index_Nest_Ptr_Array *array = &file->root.nest_array;
   Code_Index_Nest *nest = NULL;
   for (;;){
     b32 found = false;

@@ -12,21 +12,51 @@ global Code_Index global_code_index = {};
 // TODO(allen): accelerator for these nest lookups?
 // Looks like the only one I ever actually use is the file one, not the array one.
 function Code_Index_Nest*
-code_index_get_nest_(Code_Index_Nest* parent, Code_Index_Nest_Ptr_Array *array, i64 pos){
+code_index_get_nest_(Code_Index_Nest *nest, i64 pos){
   // binary search?
-  for (i32 i = 0; i < array->count; i += 1){
-    Code_Index_Nest *nest = array->ptrs[i];
-    if (nest->open.min <= pos && pos <= nest->close.min){
-      return code_index_get_nest_(nest, &nest->nest_array, pos);
+  for (i32 i = 0; i < nest->nest_array.count; i += 1){
+    Code_Index_Nest *n = nest->nest_array.ptrs[i];
+    if (n->open.min <= pos && pos <= n->close.min){
+      return code_index_get_nest_(n, pos);
       // tail-call equiv of `return(sub_nest != 0 ? sub_nest : nest)`
     }
   }
-  return parent;
+  return nest;
+}
+
+function Code_Index_Nest*
+nest_next_in_order(Code_Index_Nest *nest, i64 pos, u64 mask){
+  if (nest == NULL){ return NULL; }
+  if (pos <= nest->open.min && HasFlag(mask, 1ull << nest->kind)){ return nest; }
+
+  for (int i=0; i < nest->nest_array.count; i++){
+    Code_Index_Nest *n = nest->nest_array.ptrs[i];
+    Code_Index_Nest *next = nest_next_in_order(n, pos, mask);
+    if (next != NULL){ return next; }
+  }
+
+  if (pos <= nest->close.min && HasFlag(mask, 1ull << nest->kind)){ return nest; }
+  return NULL;
+}
+
+function Code_Index_Nest*
+nest_prev_in_order(Code_Index_Nest *nest, i64 pos, u64 mask){
+  if (nest == NULL){ return NULL; }
+  if (nest->close.min <= pos && HasFlag(mask, 1ull << nest->kind)){ return nest; }
+
+  for (int i=0; i < nest->nest_array.count; i++){
+    Code_Index_Nest *n = nest->nest_array.ptrs[nest->nest_array.count-1-i];
+    Code_Index_Nest *prev = nest_prev_in_order(n, pos, mask);
+    if (prev != NULL){ return prev; }
+  }
+
+  if (nest->open.min <= pos && HasFlag(mask, 1ull << nest->kind)){ return nest; }
+  return NULL;
 }
 
 function Code_Index_Nest*
 code_index_get_nest(Code_Index_File *file, i64 pos){
-  return(file==NULL ? NULL : code_index_get_nest_(NULL, &file->nest_array, pos));
+  return(file==NULL ? NULL : code_index_get_nest_(&file->root, pos));
 }
 
 function Code_Index_Nest*
@@ -37,7 +67,7 @@ code_index_nest_walk(Code_Index_Nest *nest, i64 pos){
       return code_index_get_nest(file, pos);
     }
     if (nest->open.min <= pos && pos < nest->close.max){
-      return code_index_get_nest_(nest, &nest->nest_array, pos);
+      return code_index_get_nest_(nest, pos);
     }
     nest = nest->parent;
   }
@@ -150,7 +180,7 @@ code_index_unlock(void){
 
 function void
 code_index__hash_file(Code_Index_File *file){
-  for (Code_Index_Note *node = file->note_list.first;
+  for (Code_Index_Note *node = file->root.note_list.first;
        node != 0;
        node = node->next){
     Code_Index_Note_List *list = code_index__list_from_string(node->text);
@@ -161,7 +191,7 @@ code_index__hash_file(Code_Index_File *file){
 
 function void
 code_index__clear_file(Code_Index_File *file){
-  for (Code_Index_Note *node = file->note_list.first;
+  for (Code_Index_Note *node = file->root.note_list.first;
        node != 0;
        node = node->next){
     Code_Index_Note_List *list = code_index__list_from_string(node->text);
@@ -249,5 +279,5 @@ code_index_shift(Code_Index_Nest_Ptr_Array *array, Range_i64 old_range, u64 new_
 
 function void
 code_index_shift(Code_Index_File *file, Range_i64 old_range, u64 new_size){
-  code_index_shift(&file->nest_array, old_range, new_size);
+  code_index_shift(&file->root.nest_array, old_range, new_size);
 }

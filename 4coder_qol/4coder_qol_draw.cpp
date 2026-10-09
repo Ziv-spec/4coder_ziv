@@ -738,8 +738,8 @@ qol_draw_peek(Application_Links *app, Frame_Info frame_info){
       Code_Index_File *file = code_index_get_file(b);
       if (file == 0){ continue; }
 
-      for (i32 i = 0; i < file->note_array.count; i += 1){
-        Code_Index_Note *n = file->note_array.ptrs[i];
+      for (i32 i = 0; i < file->root.note_array.count; i += 1){
+        Code_Index_Note *n = file->root.note_array.ptrs[i];
         if (!string_match(n->text, lexeme)){ continue; }
 
         peek_buffer = b;

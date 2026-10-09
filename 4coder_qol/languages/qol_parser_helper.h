@@ -99,7 +99,7 @@ function Code_Index_Nest* qol_nest_pop(QOL_Parse_State *state, bool is_closed, R
   state->generic.in_statement    = qol_nest_is_inside(nest->parent, CodeIndexNest_Statement);
   state->generic.in_preprocessor = qol_nest_is_inside(nest->parent, CodeIndexNest_Preprocessor);
   nest->nest_array = code_index_nest_ptr_array_from_list(state->generic.arena, &nest->nest_list);
-  Code_Index_Nest_List *list = (state->stack ? &state->stack->nest_list : &state->index->nest_list);
+  Code_Index_Nest_List *list = (state->stack ? &state->stack->nest_list : &state->index->root.nest_list);
   code_index_push_nest(list, nest);
   return nest;
 }
@@ -125,8 +125,8 @@ function void qol_nest_resolve(QOL_Parse_State *state, Code_Index_Nest *last){
   while (state->stack != last){
     qol_nest_pop(state, false, Ii64(qol_tok_peek(state)));
   }
-  state->index->nest_array = code_index_nest_ptr_array_from_list(state->generic.arena, &state->index->nest_list);
-  state->index->note_array = code_index_note_ptr_array_from_list(state->generic.arena, &state->index->note_list);
+  state->index->root.nest_array = code_index_nest_ptr_array_from_list(state->generic.arena, &state->index->root.nest_list);
+  state->index->root.note_array = code_index_note_ptr_array_from_list(state->generic.arena, &state->index->root.note_list);
 }
 
 function b32 qol_scan_parens(QOL_Parse_State *state){
