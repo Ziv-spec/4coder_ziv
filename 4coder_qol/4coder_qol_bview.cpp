@@ -134,7 +134,22 @@ qol_bview_spin(Application_Links *app){
   for (;;){
     User_Input in = get_next_input(app, EventPropertyGroup_Any, 0);
     if (in.abort){ break; }
-    leave_current_input_unhandled(app);
+
+    if (match_mouse_code(&in.event, MouseCode_Left)) {
+      Mouse_State m = get_mouse_state(app);
+      i64 new_pos = view_pos_from_xy(app, g_qol_b_view, V2f32(m.p));
+      view_set_cursor(app, g_qol_b_view, seek_pos(new_pos));
+      no_mark_snap_to_cursor_if_shift(app, g_qol_b_view);
+    }
+    else if (in.event.kind == InputEventKind_MouseWheel) {
+      f32 mouse_scroll_amount = (f32)in.event.mouse_wheel.value;
+      Buffer_Scroll scroll = view_get_buffer_scroll(app, g_qol_b_view);
+      scroll.target = view_move_buffer_point(app, g_qol_b_view, scroll.target, V2f32(0.f, mouse_scroll_amount));
+      move_vertical_pixels(app, g_qol_b_view, mouse_scroll_amount);
+      view_set_buffer_scroll(app, g_qol_b_view, scroll, SetBufferScroll_SnapCursorIntoView);
+    }
+    else
+      leave_current_input_unhandled(app);
   }
 }
 
