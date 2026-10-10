@@ -26,6 +26,7 @@ enum{
   InputEventKind_MouseMove,
   InputEventKind_Core,
   InputEventKind_CustomFunction,
+  InputEventKind_MouseButtonDoubleClick,
 
   InputEventKind_COUNT,
 };
@@ -128,6 +129,7 @@ enum{
   EventProperty_Clipboard      = 0x2000,
   EventProperty_CustomFunction = 0x4000,
   EventProperty_DropFiles      = 0x8000, // @Added by ziv
+  EventProperty_MouseDoubleClick = 0x10000,
 };
 enum{
   EventPropertyGroup_AnyKeyboardEvent =
@@ -139,7 +141,8 @@ enum{
     EventProperty_MouseButton|
     EventProperty_MouseRelease|
     EventProperty_MouseWheel|
-    EventProperty_MouseMove,
+    EventProperty_MouseMove|
+    EventProperty_MouseDoubleClick,
   EventPropertyGroup_AnyUserInput =
     EventPropertyGroup_AnyKeyboardEvent|
     EventPropertyGroup_AnyMouseEvent,

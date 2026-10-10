@@ -2,7 +2,7 @@
 #define command_id(c) (fcoder_metacmd_ID_##c)
 #define command_metadata(c) (&fcoder_metacmd_table[command_id(c)])
 #define command_metadata_by_id(id) (&fcoder_metacmd_table[id])
-#define command_one_past_last_id 358
+#define command_one_past_last_id 359
 #if defined(CUSTOM_COMMAND_SIG)
 #define PROC_LINKS(x,y) x
 #else
@@ -368,6 +368,7 @@ void zk_mouse_wheel_scroll(struct Application_Links *app);
 void zk_reverse_search(struct Application_Links *app);
 void zk_search(struct Application_Links *app);
 void zk_startup(struct Application_Links *app);
+void zk_word_select(struct Application_Links *app);
 #endif
 
 struct Command_Metadata{
@@ -383,7 +384,7 @@ i32 source_name_len;
 i32 line_number;
 };
 
-static Command_Metadata fcoder_metacmd_table[358] = {
+static Command_Metadata fcoder_metacmd_table[359] = {
 { PROC_LINKS(MC_add_at_pos, 0), 0, false, "MC_add_at_pos", 13, "[MC] adds multi-cursor at current pos", 37, "E:\\dev\\4coder_ziv\\4coder_qol\\plugins\\4coder_multi_cursor.cpp", 60, 415 },
 { PROC_LINKS(MC_begin_multi, 0), 0, false, "MC_begin_multi", 14, "[MC] begins multi-cursors", 25, "E:\\dev\\4coder_ziv\\4coder_qol\\plugins\\4coder_multi_cursor.cpp", 60, 428 },
 { PROC_LINKS(MC_begin_multi_block, 0), 0, false, "MC_begin_multi_block", 20, "[MC] begins multi-cursor using cursor-mark block-rect", 53, "E:\\dev\\4coder_ziv\\4coder_qol\\plugins\\4coder_multi_cursor.cpp", 60, 454 },
@@ -452,8 +453,8 @@ static Command_Metadata fcoder_metacmd_table[358] = {
 { PROC_LINKS(execute_previous_cli, 0), 2, false, "execute_previous_cli", 20, "If the command execute_any_cli has already been used, this will execute a CLI reusing the most recent buffer name and command.", 126, "E:\\dev\\4coder_ziv\\4coder_qol\\custom\\4coder_cli_command.cpp", 58, 7 },
 { PROC_LINKS(exit_4coder, 0), 2, false, "exit_4coder", 11, "Attempts to close 4coder.", 25, "E:\\dev\\4coder_ziv\\4coder_qol\\custom\\4coder_base_commands.cpp", 60, 857 },
 { PROC_LINKS(go_to_user_directory, 0), 2, false, "go_to_user_directory", 20, "Go to the 4coder user directory", 31, "E:\\dev\\4coder_ziv\\4coder_qol\\custom\\4coder_config.cpp", 53, 1746 },
-{ PROC_LINKS(goto_beginning_of_file, 0), 0, false, "goto_beginning_of_file", 22, "Sets the cursor to the beginning of the file.", 45, "E:\\dev\\4coder_ziv\\4coder_qol\\custom\\4coder_helper.cpp", 53, 2271 },
-{ PROC_LINKS(goto_end_of_file, 0), 0, false, "goto_end_of_file", 16, "Sets the cursor to the end of the file.", 39, "E:\\dev\\4coder_ziv\\4coder_qol\\custom\\4coder_helper.cpp", 53, 2279 },
+{ PROC_LINKS(goto_beginning_of_file, 0), 0, false, "goto_beginning_of_file", 22, "Sets the cursor to the beginning of the file.", 45, "E:\\dev\\4coder_ziv\\4coder_qol\\custom\\4coder_helper.cpp", 53, 2284 },
+{ PROC_LINKS(goto_end_of_file, 0), 0, false, "goto_end_of_file", 16, "Sets the cursor to the end of the file.", 39, "E:\\dev\\4coder_ziv\\4coder_qol\\custom\\4coder_helper.cpp", 53, 2292 },
 { PROC_LINKS(goto_first_jump, 0), 0, false, "goto_first_jump", 15, "If a buffer containing jump locations has been locked in, goes to the first jump in the buffer.", 95, "E:\\dev\\4coder_ziv\\4coder_qol\\custom\\4coder_jump_sticky.cpp", 58, 529 },
 { PROC_LINKS(goto_first_jump_same_panel_sticky, 0), 0, false, "goto_first_jump_same_panel_sticky", 33, "If a buffer containing jump locations has been locked in, goes to the first jump in the buffer and views the buffer in the panel where the jump list was.", 153, "E:\\dev\\4coder_ziv\\4coder_qol\\custom\\4coder_jump_sticky.cpp", 58, 546 },
 { PROC_LINKS(goto_jump_at_cursor, 0), 0, false, "goto_jump_at_cursor", 19, "If the cursor is found to be on a jump location, parses the jump location and brings up the file and position in another view and changes the active panel to the view containing the jump.", 187, "E:\\dev\\4coder_ziv\\4coder_qol\\custom\\4coder_jump_sticky.cpp", 58, 349 },
@@ -660,10 +661,10 @@ static Command_Metadata fcoder_metacmd_table[358] = {
 { PROC_LINKS(save_to_query, 0), 0, false, "save_to_query", 13, "Queries the user for a file name and saves the contents of the current buffer, altering the buffer's name too.", 110, "E:\\dev\\4coder_ziv\\4coder_qol\\custom\\4coder_base_commands.cpp", 60, 1435 },
 { PROC_LINKS(search, 0), 0, false, "search", 6, "Begins an incremental search down through the current buffer for a user specified string.", 89, "E:\\dev\\4coder_ziv\\4coder_qol\\custom\\4coder_base_commands.cpp", 60, 1117 },
 { PROC_LINKS(search_identifier, 0), 0, false, "search_identifier", 17, "Begins an incremental search down through the current buffer for the word or token under the cursor.", 100, "E:\\dev\\4coder_ziv\\4coder_qol\\custom\\4coder_base_commands.cpp", 60, 1129 },
-{ PROC_LINKS(seek_beginning_of_line, 0), 1, false, "seek_beginning_of_line", 22, "Seeks the cursor to the beginning of the visual line.", 53, "E:\\dev\\4coder_ziv\\4coder_qol\\custom\\4coder_helper.cpp", 53, 2259 },
-{ PROC_LINKS(seek_beginning_of_textual_line, 0), 1, false, "seek_beginning_of_textual_line", 30, "Seeks the cursor to the beginning of the line across all text.", 62, "E:\\dev\\4coder_ziv\\4coder_qol\\custom\\4coder_helper.cpp", 53, 2247 },
-{ PROC_LINKS(seek_end_of_line, 0), 1, false, "seek_end_of_line", 16, "Seeks the cursor to the end of the visual line.", 47, "E:\\dev\\4coder_ziv\\4coder_qol\\custom\\4coder_helper.cpp", 53, 2265 },
-{ PROC_LINKS(seek_end_of_textual_line, 0), 1, false, "seek_end_of_textual_line", 24, "Seeks the cursor to the end of the line across all text.", 56, "E:\\dev\\4coder_ziv\\4coder_qol\\custom\\4coder_helper.cpp", 53, 2253 },
+{ PROC_LINKS(seek_beginning_of_line, 0), 1, false, "seek_beginning_of_line", 22, "Seeks the cursor to the beginning of the visual line.", 53, "E:\\dev\\4coder_ziv\\4coder_qol\\custom\\4coder_helper.cpp", 53, 2272 },
+{ PROC_LINKS(seek_beginning_of_textual_line, 0), 1, false, "seek_beginning_of_textual_line", 30, "Seeks the cursor to the beginning of the line across all text.", 62, "E:\\dev\\4coder_ziv\\4coder_qol\\custom\\4coder_helper.cpp", 53, 2260 },
+{ PROC_LINKS(seek_end_of_line, 0), 1, false, "seek_end_of_line", 16, "Seeks the cursor to the end of the visual line.", 47, "E:\\dev\\4coder_ziv\\4coder_qol\\custom\\4coder_helper.cpp", 53, 2278 },
+{ PROC_LINKS(seek_end_of_textual_line, 0), 1, false, "seek_end_of_textual_line", 24, "Seeks the cursor to the end of the line across all text.", 56, "E:\\dev\\4coder_ziv\\4coder_qol\\custom\\4coder_helper.cpp", 53, 2266 },
 { PROC_LINKS(select_all, 0), 0, false, "select_all", 10, "Puts the cursor at the top of the file, and the mark at the bottom of the file.", 79, "E:\\dev\\4coder_ziv\\4coder_qol\\custom\\4coder_base_commands.cpp", 60, 552 },
 { PROC_LINKS(select_next_scope_absolute, 0), 0, false, "select_next_scope_absolute", 26, "Finds the first scope started by '{' after the cursor and puts the cursor and mark on the '{' and '}'.", 102, "E:\\dev\\4coder_ziv\\4coder_qol\\custom\\4coder_scope_commands.cpp", 61, 57 },
 { PROC_LINKS(select_next_scope_after_current, 0), 0, false, "select_next_scope_after_current", 31, "If a scope is selected, find first scope that starts after the selected scope. Otherwise find the first scope that starts after the cursor.", 139, "E:\\dev\\4coder_ziv\\4coder_qol\\custom\\4coder_scope_commands.cpp", 61, 66 },
@@ -742,6 +743,7 @@ static Command_Metadata fcoder_metacmd_table[358] = {
 { PROC_LINKS(zk_reverse_search, 0), 0, false, "zk_reverse_search", 17, "[ZK] I-search up", 16, "E:\\dev\\4coder_ziv\\4coder_zk\\4coder_zk_search.cpp", 48, 1195 },
 { PROC_LINKS(zk_search, 0), 0, false, "zk_search", 9, "[ZK] I-search down", 18, "E:\\dev\\4coder_ziv\\4coder_zk\\4coder_zk_search.cpp", 48, 1189 },
 { PROC_LINKS(zk_startup, 0), 0, false, "zk_startup", 10, "ZK command for responding to a startup event", 44, "E:\\dev\\4coder_ziv\\4coder_zk\\4coder_zk_hooks.cpp", 47, 2 },
+{ PROC_LINKS(zk_word_select, 0), 0, false, "zk_word_select", 14, "Selects word under mouse", 24, "E:\\dev\\4coder_ziv\\4coder_zk\\4coder_zk_commands.cpp", 50, 518 },
 };
 
 static i32 fcoder_metacmd_ID_MC_add_at_pos = 0;
@@ -1102,4 +1104,5 @@ static i32 fcoder_metacmd_ID_zk_mouse_wheel_scroll = 354;
 static i32 fcoder_metacmd_ID_zk_reverse_search = 355;
 static i32 fcoder_metacmd_ID_zk_search = 356;
 static i32 fcoder_metacmd_ID_zk_startup = 357;
+static i32 fcoder_metacmd_ID_zk_word_select = 358;
 #endif

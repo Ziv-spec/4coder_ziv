@@ -1,7 +1,9 @@
 
 #include "../4coder_zk/4coder_zk_microsoft_crazyness.h"
 
+
 #include "4coder_default_include.h"
+global f32 g_double_click_t;
 
 //#define SNIPPET_EXPANSION "path/to/snippet.inc"
 

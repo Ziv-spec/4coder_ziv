@@ -101,6 +101,8 @@ zk_tick(Application_Links *app, Frame_Info frame_info){
   qol_tick(app, frame_info);
   f32 dt = frame_info.animation_dt;
 
+  g_double_click_t += dt;
+
   if (g_use_minimap_hover) {
     g_hover_dt += dt;
     if (g_hover_dt < HOVER_TIME)

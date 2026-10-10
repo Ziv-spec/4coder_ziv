@@ -514,3 +514,33 @@ CUSTOM_DOC("Reads the scroll wheel value from the mouse state and scrolls accord
     no_mark_snap_to_cursor(app, view);
   }
 }
+
+CUSTOM_COMMAND_SIG(zk_word_select)
+CUSTOM_DOC("Selects word under mouse")
+{
+  Scratch_Block scratch(app);
+  View_ID view = get_active_view(app, Access_Always);
+  Buffer_ID buffer = view_get_buffer(app, view, Access_Always);
+  Mouse_State m = get_mouse_state(app);
+  i64 pos = view_pos_from_xy(app, view, V2f32(m.p));
+
+  #if 0
+  Token *token = get_token_from_pos(app, buffer, pos);
+  if (token != 0 && token->size > 0 && token->kind != TokenBaseKind_Whitespace){
+    Range_i64 range = Ii64(token);
+    view_set_mark(app, view, seek_pos(range.min));
+    view_set_cursor(app, view, seek_pos(range.max));
+  }
+  #else
+  i64 first_pos = 0;
+  String_Const_u8 word = zk_buffer_get_string_under_cursor(app, scratch, buffer, pos, &first_pos);
+
+  if (word.str != NULL && word.size > 0) {
+    Range_i64 range = { first_pos, first_pos + (i64)word.size};
+    view_set_mark(app, view, seek_pos(range.min));
+    view_set_cursor(app, view, seek_pos(range.max));
+  }
+  #endif
+
+
+}

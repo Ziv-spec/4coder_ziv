@@ -123,9 +123,9 @@ is_unmodified_key(Input_Event *event){
   if (event->kind == InputEventKind_KeyStroke){
     Input_Modifier_Set *set = get_modifiers(event);
     result = (!has_modifier(set, KeyCode_Control) &&
-              !has_modifier(set, KeyCode_Alt) &&
-              !has_modifier(set, KeyCode_Shift) &&
-              !has_modifier(set, KeyCode_Command));
+                !has_modifier(set, KeyCode_Alt) &&
+                !has_modifier(set, KeyCode_Shift) &&
+                !has_modifier(set, KeyCode_Command));
   }
   return(result);
 }
@@ -150,11 +150,11 @@ event_next_text_event(Input_Event *event){
   Input_Event result = {};
   if (event != 0){
     if (event->kind == InputEventKind_KeyStroke &&
-        event->key.first_dependent_text != 0){
+          event->key.first_dependent_text != 0){
       block_copy_struct(&result, event->key.first_dependent_text);
     }
     else if (event->kind == InputEventKind_TextInsert &&
-             event->text.next_text != 0){
+               event->text.next_text != 0){
       block_copy_struct(&result, event->text.next_text);
     }
   }
@@ -233,6 +233,11 @@ get_event_properties(Input_Event *event){
       flags |= EventProperty_MouseMove;
     }break;
 
+    case InputEventKind_MouseButtonDoubleClick:
+    {
+      flags |= EventProperty_MouseDoubleClick;
+    } break;
+
     case InputEventKind_Core:
     {
       switch (event->core.code){
@@ -268,9 +273,9 @@ get_event_properties(Input_Event *event){
         }break;
 
         // @Added by ziv
-        case CoreCode_NewDropFiles: 
+        case CoreCode_NewDropFiles:
         {
-            flags |= EventProperty_DropFiles;
+          flags |= EventProperty_DropFiles;
         } break;
       }
     }break;
@@ -407,7 +412,7 @@ parse_keyboard_event(Arena *arena, String_Const_u8 text){
     result.text.string.str = push_array(arena, u8, max_size);
     for (; pos + 1 < text.size; pos += 2){
       if (character_is_base16(text.str[pos]) &&
-          character_is_base16(text.str[pos + 1])){
+            character_is_base16(text.str[pos + 1])){
         String_Const_u8 byte_str = {text.str + pos, 2};
         result.text.string.str[result.text.string.size] = (u8)string_to_integer(byte_str, 16);
         result.text.string.size += 1;

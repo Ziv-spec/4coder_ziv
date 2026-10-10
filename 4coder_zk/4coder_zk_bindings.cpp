@@ -20,6 +20,7 @@ zk_setup_essential_mapping(Mapping *mapping, i64 global_id, i64 file_id, i64 cod
   BindMouseRelease(MM_Wrap(click_set_cursor), MouseCode_Left);
   BindCore(MM_Wrap(click_set_cursor_and_mark), CoreCode_ClickActivateView);
   BindMouseMove(MM_Wrap(click_set_cursor_if_lbutton));
+  //BindMouseDoubleClick(zk_word_select, MouseCode_Left);
 
   SelectMap(code_id);
   ParentMap(file_id);
@@ -173,7 +174,7 @@ zk_setup_default_mapping(Mapping *mapping, i64 global_id, i64 file_id, i64 code_
   Bind(goto_line,                   KeyCode_G, KeyCode_Control);
 
   // Search
-  Bind(zk_search,                  KeyCode_F, KeyCode_Control);
+  Bind(qol_search,                  KeyCode_F, KeyCode_Control);
   Bind(zk_reverse_search,          KeyCode_R, KeyCode_Control);
   Bind(list_all_locations,          KeyCode_F, KeyCode_Control, KeyCode_Shift);
   Bind(list_all_substring_locations_case_insensitive, KeyCode_F, KeyCode_Alt);

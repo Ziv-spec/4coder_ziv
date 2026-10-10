@@ -1491,9 +1491,22 @@ get_next_input(Application_Links *app, Event_Property use_flags, Event_Property 
         in.abort = true;
         break;
       }
+      #if 1
+      if (in.event.kind == InputEventKind_MouseButton) {
+        if (g_double_click_t < 0.300f) {
+          in.event.kind = InputEventKind_MouseButtonDoubleClick;
+          event_flags = get_event_properties(&in.event);
+          zk_word_select(app);
+        }
+        else {
+          g_double_click_t = 0;
+        }
+      }
+      #endif
       if ((event_flags & use_flags) != 0){
         break;
       }
+
     }
   }
   return(in);
