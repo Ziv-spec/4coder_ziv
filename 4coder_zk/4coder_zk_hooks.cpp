@@ -297,7 +297,7 @@ zk_render_caller(Application_Links *app, Frame_Info frame_info, View_ID view_id)
 
   // NOTE(allen): query bars
   region = SEARCH_draw_bar_inner(app, frame_info, region, view_id, face_id);
-  region = qol_draw_query_bars(app, region, view_id, face_id);
+  region = qol_draw_query_bars(app, frame_info, region, view_id, face_id);
 
   // NOTE(allen): file bar
   b64 showing_file_bar = false;
@@ -418,25 +418,11 @@ BUFFER_HOOK_SIG(zk_begin_buffer){
     String_Const_u8_Array extensions = parse_extension_line_to_extension_list(scratch, treat_as_code_string);
     String_Const_u8 ext = string_file_extension(file_name);
     for (i32 i = 0; i < extensions.count; ++i){
-      if (string_match(ext, extensions.strings[i])){
-
-        if (string_match(ext, string_u8_litexpr("cpp")) ||
-              string_match(ext, string_u8_litexpr("h")) ||
-              string_match(ext, string_u8_litexpr("c")) ||
-              string_match(ext, string_u8_litexpr("hpp")) ||
-              string_match(ext, string_u8_litexpr("cc")) ||
-              string_match(ext, string_u8_litexpr("4coder"))){
-          *lang_ptr = Lang_Cpp;
-        }
-        else if (string_match(ext, string_u8_litexpr("lua"))){
-          *lang_ptr = Lang_Lua;
-        }
-
-        break;
-      }
+      if (!string_match(ext, extensions.strings[i])){ continue; }
+      *lang_ptr = qol_lang_id_for_ext(ext);
+      break;
     }
   }
-
 
   // TODO(ziv): Replace this with actualy something reasonable when you can. This is
   // very much a hack as of right now, and should not be allowed to stay in the form that
@@ -456,38 +442,25 @@ BUFFER_HOOK_SIG(zk_begin_buffer){
   Command_Map_ID *map_id_ptr = scope_attachment(app, scope, buffer_map_id, Command_Map_ID);
   *map_id_ptr = map_id;
 
+  // NOTE(allen): Decide buffer settings
   Line_Ending_Kind setting = guess_line_ending_kind_from_buffer(app, buffer_id);
   Line_Ending_Kind *eol_setting = scope_attachment(app, scope, buffer_eol_setting, Line_Ending_Kind);
   *eol_setting = setting;
 
-  // NOTE(allen): Decide buffer settings
-  b32 wrap_lines = true;
-  if (is_code){
-    wrap_lines = def_get_config_b32(vars_save_string_lit("enable_code_wrapping"));
-  }
-
-  String_Const_u8 buffer_name = push_buffer_base_name(app, scratch, buffer_id);
-  if (buffer_name.size > 0 && buffer_name.str[0] == '*' && buffer_name.str[buffer_name.size - 1] == '*'){
-    wrap_lines = def_get_config_b32(vars_save_string_lit("enable_output_wrapping"));
-  }
-
-  if (is_code){
+  {
     ProfileBlock(app, "begin buffer kick off lexer");
     Async_Task *lex_task_ptr = scope_attachment(app, scope, buffer_lex_task, Async_Task);
     *lex_task_ptr = async_task_no_dep(&global_async_system, qol_lang_full_lex_async, make_data_struct(&buffer_id));
   }
 
-  {
-    b32 *wrap_lines_ptr = scope_attachment(app, scope, buffer_wrap_lines, b32);
-    *wrap_lines_ptr = wrap_lines;
-  }
 
-  if (is_code){
-    buffer_set_layout(app, buffer_id, layout_virt_indent_index_generic);
-  }
-  else{
-    buffer_set_layout(app, buffer_id, layout_generic);
-  }
+  b32 wrap_lines = (buffer_has_name_with_star(app, buffer_id) ?
+                      def_get_config_b32(vars_save_string_lit("enable_output_wrapping")) :
+                    def_get_config_b32(vars_save_string_lit("enable_code_wrapping")));
+  b32 *wrap_lines_ptr = scope_attachment(app, scope, buffer_wrap_lines, b32);
+  *wrap_lines_ptr = wrap_lines;
+
+  buffer_set_layout(app, buffer_id, is_code ? layout_virt_indent_index_generic : layout_generic);
 
   return 0;
 }

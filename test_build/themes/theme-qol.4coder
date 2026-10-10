@@ -13,6 +13,7 @@ defcolor_highlight_cursor_line      =  0xFF4C566A;
 defcolor_mark                       =  0xFFC8C8D8;
 defcolor_highlight                  =  0xFF203483;
 defcolor_at_highlight               =  0xFFCDAA7D;
+defcolor_selection_highlight        = 0xFFCDAA7D;
 
 defcolor_text_default               =  0xFFEFEFEF;
 defcolor_comment                    =  0xFF616E88;

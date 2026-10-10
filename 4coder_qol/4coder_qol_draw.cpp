@@ -107,14 +107,14 @@ qol_draw_scopes(Application_Links *app, View_ID view, Buffer_ID buffer, Text_Lay
 
       if (paren_level == 0){
         if (token->kind == TokenBaseKind_ScopeClose ||
-            (token->kind == TokenBaseKind_StmntClose && lang->id == Lang_Cpp && token->sub_kind != TokenCppKind_Colon))
+              (token->kind == TokenBaseKind_StmntClose && lang->id == Lang_Cpp && token->sub_kind != TokenCppKind_Colon))
         {
           break;
         }
         else if (token->kind == TokenBaseKind_Identifier ||
-                 token->kind == TokenBaseKind_Keyword    ||
-                 token->kind == TokenBaseKind_Comment    ||
-                 token->kind == TokenBaseKind_Control)
+                   token->kind == TokenBaseKind_Keyword    ||
+                   token->kind == TokenBaseKind_Comment    ||
+                   token->kind == TokenBaseKind_Control)
         {
           Scratch_Block scratch(app);
           i64 line = get_line_number_from_pos(app, buffer, nest->open.min);
@@ -554,7 +554,7 @@ qol_render_buffer(Application_Links *app, View_ID view_id, Face_ID face_id, Buff
   }
 
   if (rect_contains_point(rect, qol_cur_cursor_pos) &&
-      def_get_config_b32(vars_save_string_lit("use_function_tooltip"))){
+        def_get_config_b32(vars_save_string_lit("use_function_tooltip"))){
     qol_draw_function_tooltip(app, buffer, cursor_pos);
   }
 
@@ -763,7 +763,7 @@ qol_draw_peek(Application_Links *app, Frame_Info frame_info){
   draw_line_highlight(app, text_layout_id, peek_line, fcolor_id(defcolor_highlight_cursor_line));
 
   Rect_f32 prev_clip = draw_set_clip(app, text_layout_region(app, text_layout_id));
-  qol_paint_cpp_token_colors(app, peek_buffer, text_layout_id);
+  qol_paint_token_colors(app, peek_buffer, text_layout_id);
   draw_text_layout_default(app, text_layout_id);
   text_layout_free(app, text_layout_id);
   draw_set_clip(app, prev_clip);

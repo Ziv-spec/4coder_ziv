@@ -22,6 +22,7 @@ defcolor_highlight_cursor_line = 0xFF4C546A;
 
 defcolor_highlight         = 0xFFdc7575; // search highlight bg color
 defcolor_at_highlight      = 0xFFFFFFFF; // search highlight txt color
+defcolor_selection_highlight = 0xFF0000ff;
 
 defcolor_paste             = 0xFFFFBB00;
 defcolor_undo              = 0xFF80005D;
@@ -30,10 +31,10 @@ defcolor_highlight_junk    = 0x80500000;
 defcolor_highlight_white   = 0xFF003A3A;
 
 defcolor_back_cycle        = {defcolor_back};
-defcolor_text_cycle        = {defcolor_text_default};
+defcolor_text_cycle        = {0xFFB00070, 0xFF00A000, 0xFF0080D0, 0xFFC0C000};
 
 defcolor_line_numbers_back = 0xFF082628;
-defcolor_line_numbers_text = 0xFF082628;
+defcolor_line_numbers_text = defcolor_bar;
 
 // Code
 
