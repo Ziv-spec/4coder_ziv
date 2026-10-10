@@ -234,10 +234,9 @@ zk_go_to_definition_at_cursor(Application_Links *app, b32 same_panel) {
   Buffer_ID buffer = view_get_buffer(app, view, Access_Always);
   i64 pos = view_get_cursor_pos(app, view);
 
-  if (view == 0) return;
-
   if (!same_panel)
     view = get_next_view_looped_primary_panels(app, view, Access_Always);
+  if (view == 0) return;
 
   Token *token = get_token_from_pos(app, buffer, pos);
   if (token == NULL || token->size <= 0 ||
@@ -272,7 +271,6 @@ zk_go_to_definition_at_cursor(Application_Links *app, b32 same_panel) {
     return;
   }
 
-  String_Const_u8 full_path = {0};
   if (is_quotes && query.size > 2) {
 
     // not in project, assume base directory from file you request from
@@ -294,8 +292,11 @@ zk_go_to_definition_at_cursor(Application_Links *app, b32 same_panel) {
     }
     filename = string_skip(filename, relative_count*3);
 
-    // Final file to open
-    full_path = push_u8_stringf(scratch, "%S\\%S", base_path, filename);
+    String_Const_u8 full_path = push_u8_stringf(scratch, "%S\\%S", base_path, filename);
+    if (view_open_file(app, view, full_path, true)){
+      view_set_active(app, view);
+    }
+    return;
   }
 
   #if OS_WINDOWS
@@ -320,16 +321,29 @@ zk_go_to_definition_at_cursor(Application_Links *app, b32 same_panel) {
       // and I do not plan on supporting those.
     }
 
+    String_Const_u8 full_path = {0};
     for (Node_String_Const_u8 *node = list.first; node; node = node->next) {
       full_path = zk_find_file_in_folder_recursive(scratch, node->string, filename);
       if (file_exists_and_is_file(app, full_path))  break;
     }
+
+    // try to open the path
+    Buffer_ID buf = get_buffer_by_name(app, full_path, Access_ReadVisible);
+    if (!buffer_exists(app, buf)){
+      buf = create_buffer(app, full_path,
+                          BufferCreate_Background | BufferCreate_NeverNew);
+
+      buffer_set_setting(app, buf, BufferSetting_Unimportant, true);
+      buffer_set_setting(app, buf, BufferSetting_ReadOnly, true);
+      buffer_set_setting(app, buf, BufferSetting_Unkillable, false);
+    }
+
+    view_set_buffer(app, view, buf, 0);
+    view_set_active(app, view);
+    return;
   }
   #endif
 
-  if (view_open_file(app, view, full_path, true)){
-    view_set_active(app, view);
-  }
 }
 
 CUSTOM_COMMAND_MC_GLOBAL_SIG(zk_go_to_definition_same_panel)

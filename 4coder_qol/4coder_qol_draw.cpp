@@ -370,6 +370,7 @@ qol_draw_compile_errors(Application_Links *app, Buffer_ID buffer, Text_Layout_ID
 }
 
 function Rect_f32
+
 qol_draw_query_bars(Application_Links *app, Frame_Info frame_info, Rect_f32 region, View_ID view_id, Face_ID face_id){
   Face_Metrics face_metrics = get_face_metrics(app, face_id);
   f32 line_height = face_metrics.line_height;
@@ -394,10 +395,13 @@ qol_draw_query_bars(Application_Links *app, Frame_Info frame_info, Rect_f32 regi
       p = draw_fancy_line(app, face_id, fcolor_zero(), &list, p);
       draw_rectangle_fcolor(app, rect_split_top_bottom_neg(region, 2.f).max, 0.f, fcolor_id(defcolor_bar));
       if (i == 0){
+        /* TODO(ziv): FIX BUG
         local_persist Vec2_f32 cur_p = p;
         if (dist(cur_p, p) > 0.25f*dist(region.p0, region.p1)){ cur_p = p; }
         qol_interp(cur_p, p, frame_info.animation_dt, 1e-14f);
         draw_rectangle_fcolor(app, Rf32_xy_wh(cur_p.x, cur_p.y, 2.f, face_metrics.line_height), 0.f, fcolor_id(defcolor_cursor, 0));
+        */
+        draw_rectangle_fcolor(app, Rf32_xy_wh(p.x, p.y, 2.f, face_metrics.line_height), 0.f, fcolor_id(defcolor_cursor, 0));
       }
 
       region = pair.min;

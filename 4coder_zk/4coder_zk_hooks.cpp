@@ -112,7 +112,6 @@ zk_tick(Application_Links *app, Frame_Info frame_info){
     g_hover_dt = 0;
   }
 
-
   qol_interp(qol_cur_mark_pos, qol_nxt_mark_pos, dt, 1e-10f);
   if (!near_zero(qol_cur_mark_pos - qol_nxt_mark_pos, 0.5f)){
     animate_in_n_milliseconds(app, 0);

@@ -1,7 +1,6 @@
 
 #include "../4coder_zk/4coder_zk_microsoft_crazyness.h"
 
-
 #include "4coder_default_include.h"
 global f32 g_double_click_t;
 
@@ -60,7 +59,6 @@ global Vec2_f32 qol_nxt_mark_pos;
 
 #define HOVER_TIME 0.25f
 global f32 g_hover_dt;
-global b32 g_use_code_peek_hover;
 global b32 g_use_minimap_hover;
 
 #include "plugins/4coder_multi_cursor.cpp"
@@ -135,7 +133,6 @@ void custom_layer_init(Application_Links *app){
   qol_lang_register(Lang_XSL,  lex_full_input_async_cpp,  lex_full_input_cpp,  cpp_parse_file, qol_get_token_color_cpp);
   qol_lang_register(Lang_Cpp,  lex_full_input_async_cpp,  lex_full_input_cpp,  cpp_parse_file, qol_get_token_color_cpp);
   qol_lang_register(Lang_Lua,  lex_full_input_async_lua,  lex_full_input_lua,  lua_parse_file, qol_get_token_color_lua);
-
 
   // Set up custom layer hooks
   {
