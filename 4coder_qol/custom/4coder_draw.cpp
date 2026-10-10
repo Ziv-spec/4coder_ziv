@@ -771,7 +771,7 @@ draw_paren_highlight(Application_Links *app, Buffer_ID buffer, Text_Layout_ID te
       if (token_it_dec_all(&it)){
         token = token_it_read(&it);
         if (token->kind == TokenBaseKind_ParenClose &&
-              pos == token->pos + token->size){
+            pos == token->pos + token->size){
           pos = token->pos;
         }
       }

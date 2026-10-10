@@ -1,31 +1,9 @@
 
-CUSTOM_ID(attachment, buffer_lang);
-
-enum Lang_ID{
-  Lang_None,
-  Lang_Cpp,
-  Lang_Lua,
-  Lang_COUNT,
-};
-
-typedef Token_List Lex_Async_Func_Type(Async_Context*, Arena*, String_Const_u8, i32, b32*);
-typedef Token_List Lex_Sync_Func_Type (Arena*, String_Const_u8);
-typedef void Parse_Func_Type(Application_Links*, Code_Index_File*, Arena*, String_Const_u8, Token_Array*);
-typedef FColor Token_Color_Func(Token*);
-
 function Token_List lang_lex_async_nop(Async_Context *actx, Arena *arena, String_Const_u8 contents, i32 limit, b32 *canceled){ return {}; }
 function Token_List lang_lex_sync_nop (Arena *arena, String_Const_u8 contents){ return {}; }
 function void       lang_parse_nop(Application_Links *app, Code_Index_File *index, Arena *arena, String_Const_u8 contents, Token_Array *tokens){}
 function FColor     lang_paint_nop(Token* token){ return fcolor_id(defcolor_text_default); }
 // parse_async__inner
-
-struct Lang_Spec{
-  Lang_ID id;
-  Lex_Async_Func_Type *lex_async;
-  Lex_Sync_Func_Type  *lex_full;
-  Parse_Func_Type     *parse;
-  Token_Color_Func    *token_color;
-};
 
 global Lang_Spec qol_languages[Lang_COUNT];
 
@@ -36,6 +14,18 @@ function void qol_lang_register(Lang_ID id, Lex_Async_Func_Type *lex_async, Lex_
 function Lang_Spec* qol_lang_for_buffer(Application_Links *app, Buffer_ID buffer){
   Managed_Scope scope = buffer_get_managed_scope(app, buffer);
   return &qol_languages[*scope_attachment(app, scope, buffer_lang, Lang_ID)];
+}
+
+function Lang_ID qol_lang_id_for_ext(String_Const_u8 ext){
+  return (string_match(ext, str8_lit("cpp"   )) ||
+          string_match(ext, str8_lit("h"     )) ||
+          string_match(ext, str8_lit("c"     )) ||
+          string_match(ext, str8_lit("hpp"   )) ||
+          string_match(ext, str8_lit("cc"    )) ? Lang_Cpp :
+          string_match(ext, str8_lit("glsl"  )) ||
+          string_match(ext, str8_lit("hlsl"  )) ? Lang_XSL :
+          string_match(ext, str8_lit("4coder")) ? Lang_4ed :
+          string_match(ext, str8_lit("lua"   )) ? Lang_Lua : Lang_None);
 }
 
 function void qol_lang_full_lex_async(Async_Context *actx, String_Const_u8 data){
@@ -197,6 +187,8 @@ function void qol_code_index_update_tick(Application_Links *app){
        node = node->next){
     Temp_Memory_Block temp(scratch);
     Buffer_ID buffer_id = node->buffer;
+    Lang_Spec *lang = qol_lang_for_buffer(app, buffer_id);
+    if (lang->id == Lang_None){ continue; }
 
     String_Const_u8 contents = push_whole_buffer(app, scratch, buffer_id);
     Token_Array tokens = get_token_array_from_buffer(app, buffer_id);
@@ -204,7 +196,6 @@ function void qol_code_index_update_tick(Application_Links *app){
       continue;
     }
 
-    Lang_Spec *lang = qol_lang_for_buffer(app, buffer_id);
     Arena arena = make_arena_system(KB(16));
     Code_Index_File *index = push_array_zero(&arena, Code_Index_File, 1);
     index->buffer = buffer_id;

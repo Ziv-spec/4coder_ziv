@@ -101,6 +101,8 @@ qol_tick(Application_Links *app, Frame_Info frame_info){
 
   f32 dt = frame_info.animation_dt;
 
+  // vim_tick(app, frame_info);
+
   if (tick_all_fade_ranges(app, dt)){
     animate_in_n_milliseconds(app, 0);
   }
@@ -158,20 +160,10 @@ BUFFER_HOOK_SIG(qol_file_save){
     }
   }
 
-  if (string_match(name, string_u8_litexpr("config.4coder"))){
-    View_ID view = get_active_view(app, Access_Always);
-    view_enqueue_command_function(app, view, qol_reload_config);
-  }
-
-  if (string_match(name, string_u8_litexpr("project.4coder"))){
-    View_ID view = get_active_view(app, Access_Always);
-    view_enqueue_command_function(app, view, qol_reload_project);
-  }
-
-  if (string_match(name, string_u8_litexpr("bindings.4coder"))){
-    View_ID view = get_active_view(app, Access_Always);
-    view_enqueue_command_function(app, view, qol_reload_bindings);
-  }
+  View_ID view = get_active_view(app, Access_Always);
+  if (string_match(name, string_u8_litexpr(  "config.4coder"))){ view_enqueue_command_function(app, view, qol_reload_config); }
+  if (string_match(name, string_u8_litexpr( "project.4coder"))){ view_enqueue_command_function(app, view, qol_reload_project); }
+  if (string_match(name, string_u8_litexpr("bindings.4coder"))){ view_enqueue_command_function(app, view, qol_reload_bindings); }
 
   return 0;
 }
@@ -184,72 +176,42 @@ BUFFER_HOOK_SIG(qol_begin_buffer){
   Managed_Scope scope = buffer_get_managed_scope(app, buffer_id);
   Lang_ID *lang_ptr = scope_attachment(app, scope, buffer_lang, Lang_ID);
 
+  b32 is_code = false;
   String_Const_u8 file_name = push_buffer_file_name(app, scratch, buffer_id);
   if (file_name.size > 0){
     String_Const_u8 treat_as_code_string = def_get_config_string(scratch, vars_save_string_lit("treat_as_code"));
     String_Const_u8_Array extensions = parse_extension_line_to_extension_list(scratch, treat_as_code_string);
     String_Const_u8 ext = string_file_extension(file_name);
     for (i32 i = 0; i < extensions.count; ++i){
-      if (string_match(ext, extensions.strings[i])){
-
-        if (string_match(ext, string_u8_litexpr("cpp")) ||
-              string_match(ext, string_u8_litexpr("h")) ||
-              string_match(ext, string_u8_litexpr("c")) ||
-              string_match(ext, string_u8_litexpr("hpp")) ||
-              string_match(ext, string_u8_litexpr("cc")) ||
-              string_match(ext, string_u8_litexpr("4coder"))){
-          *lang_ptr = Lang_Cpp;
-        }
-        else if (string_match(ext, string_u8_litexpr("lua"))){
-          *lang_ptr = Lang_Lua;
-        }
-
-        break;
-      }
+      if (!string_match(ext, extensions.strings[i])){ continue; }
+      is_code = true;
+      *lang_ptr = qol_lang_id_for_ext(ext);
+      break;
     }
   }
 
-  b32 is_code = (*lang_ptr != Lang_None);
-
   String_ID file_map_id = vars_save_string_lit("keys_file");
   String_ID code_map_id = vars_save_string_lit("keys_code");
-  Command_Map_ID map_id = (is_code)?(code_map_id):(file_map_id);
-  Command_Map_ID *map_id_ptr = scope_attachment(app, scope, buffer_map_id, Command_Map_ID);
-  *map_id_ptr = map_id;
-
-  Line_Ending_Kind setting = guess_line_ending_kind_from_buffer(app, buffer_id);
-  Line_Ending_Kind *eol_setting = scope_attachment(app, scope, buffer_eol_setting, Line_Ending_Kind);
-  *eol_setting = setting;
+  *scope_attachment(app, scope, buffer_map_id, Command_Map_ID) = (is_code ? code_map_id : file_map_id);
 
   // NOTE(allen): Decide buffer settings
-  b32 wrap_lines = true;
-  if (is_code){
-    wrap_lines = def_get_config_b32(vars_save_string_lit("enable_code_wrapping"));
-  }
+  Line_Ending_Kind setting = guess_line_ending_kind_from_buffer(app, buffer_id);
+  *scope_attachment(app, scope, buffer_eol_setting, Line_Ending_Kind) = setting;
 
-  String_Const_u8 buffer_name = push_buffer_base_name(app, scratch, buffer_id);
-  if (buffer_name.size > 0 && buffer_name.str[0] == '*' && buffer_name.str[buffer_name.size - 1] == '*'){
-    wrap_lines = def_get_config_b32(vars_save_string_lit("enable_output_wrapping"));
-  }
-
-  if (is_code){
+  {
     ProfileBlock(app, "begin buffer kick off lexer");
     Async_Task *lex_task_ptr = scope_attachment(app, scope, buffer_lex_task, Async_Task);
     *lex_task_ptr = async_task_no_dep(&global_async_system, qol_lang_full_lex_async, make_data_struct(&buffer_id));
   }
 
-  {
-    b32 *wrap_lines_ptr = scope_attachment(app, scope, buffer_wrap_lines, b32);
-    *wrap_lines_ptr = wrap_lines;
-  }
+  b32 wrap_lines = (buffer_has_name_with_star(app, buffer_id) ?
+                    def_get_config_b32(vars_save_string_lit("enable_output_wrapping")) :
+                    def_get_config_b32(vars_save_string_lit("enable_code_wrapping")));
+  *scope_attachment(app, scope, buffer_wrap_lines, b32) = wrap_lines;
 
-  if (is_code){
-    buffer_set_layout(app, buffer_id, layout_virt_indent_index_generic);
-  }
-  else{
-    buffer_set_layout(app, buffer_id, layout_generic);
-  }
+  buffer_set_layout(app, buffer_id, is_code ? layout_virt_indent_index_generic : layout_generic);
 
+  // vim_begin_buffer_inner(app, buffer_id);
   return 0;
 }
 

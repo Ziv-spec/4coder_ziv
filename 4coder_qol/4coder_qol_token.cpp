@@ -13,6 +13,7 @@ function b32 qol_highlight_token(Token_Base_Kind kind){
 
 function Managed_ID qol_get_token_color_base(Token *token){
   switch (token->kind){
+    case TokenBaseKind_LexError:       { return defcolor_special_character; }break;
     case TokenBaseKind_Preproc:        { return defcolor_preproc;        }break;
     case TokenBaseKind_Keyword:        { return defcolor_keyword;        }break;
     case TokenBaseKind_Comment:        { return defcolor_comment;        }break;
@@ -30,6 +31,10 @@ function Managed_ID qol_get_token_color_base(Token *token){
     case TokenBaseKind_Struct:    { return defcolor_struct;    }break;
   }
   return defcolor_text_default;
+}
+
+function FColor qol_get_token_color_none(Token *token){
+  return fcolor_id(qol_get_token_color_base(token));
 }
 
 function FColor qol_get_token_color_cpp(Token *token){

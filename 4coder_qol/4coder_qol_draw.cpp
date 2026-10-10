@@ -107,14 +107,14 @@ qol_draw_scopes(Application_Links *app, View_ID view, Buffer_ID buffer, Text_Lay
 
       if (paren_level == 0){
         if (token->kind == TokenBaseKind_ScopeClose ||
-              (token->kind == TokenBaseKind_StmntClose && lang->id == Lang_Cpp && token->sub_kind != TokenCppKind_Colon))
+            (token->kind == TokenBaseKind_StmntClose && lang->id == Lang_Cpp && token->sub_kind != TokenCppKind_Colon))
         {
           break;
         }
         else if (token->kind == TokenBaseKind_Identifier ||
-                   token->kind == TokenBaseKind_Keyword    ||
-                   token->kind == TokenBaseKind_Comment    ||
-                   token->kind == TokenBaseKind_Control)
+                 token->kind == TokenBaseKind_Keyword    ||
+                 token->kind == TokenBaseKind_Comment    ||
+                 token->kind == TokenBaseKind_Control)
         {
           Scratch_Block scratch(app);
           i64 line = get_line_number_from_pos(app, buffer, nest->open.min);
@@ -250,7 +250,11 @@ function void
 qol_draw_function_tooltip_inner(Application_Links *app, Arena *arena, Code_Index_Note *note, Code_Index_Nest* paren_define, Code_Index_Nest* paren_caller, i64 pos, i64 depth){
   i64 param_hovered = 0;
   i64 pos_start = paren_caller->open.min;
-  for (Code_Index_Nest *n = paren_caller->nest_list.first; n != 0; n = n->next){
+
+  Code_Index_Nest_List caller_list = paren_caller->nest_list;
+  if (0 < caller_list.count && caller_list.last->close.min < pos){
+    param_hovered = caller_list.count;
+  } else for (Code_Index_Nest *n = caller_list.first; n != 0; n = n->next){
     if (n->next == 0 || range_contains(Ii64(pos_start, n->close.min), pos)){ break; }
     pos_start = n->close.start;
     param_hovered++;
@@ -366,7 +370,7 @@ qol_draw_compile_errors(Application_Links *app, Buffer_ID buffer, Text_Layout_ID
 }
 
 function Rect_f32
-qol_draw_query_bars(Application_Links *app, Rect_f32 region, View_ID view_id, Face_ID face_id){
+qol_draw_query_bars(Application_Links *app, Frame_Info frame_info, Rect_f32 region, View_ID view_id, Face_ID face_id){
   Face_Metrics face_metrics = get_face_metrics(app, face_id);
   f32 line_height = face_metrics.line_height;
 
@@ -388,8 +392,12 @@ qol_draw_query_bars(Application_Links *app, Rect_f32 region, View_ID view_id, Fa
       push_fancy_string(scratch, &list, fcolor_id(defcolor_text_default), query_bar->string);
       Vec2_f32 p = bar_rect.p0 + V2f32(2.f, 2.f);
       p = draw_fancy_line(app, face_id, fcolor_zero(), &list, p);
+      draw_rectangle_fcolor(app, rect_split_top_bottom_neg(region, 2.f).max, 0.f, fcolor_id(defcolor_bar));
       if (i == 0){
-        draw_rectangle_fcolor(app, Rf32_xy_wh(p.x, p.y, 2.f, face_metrics.line_height), 0.f, fcolor_id(defcolor_cursor, 0));
+        local_persist Vec2_f32 cur_p = p;
+        if (dist(cur_p, p) > 0.25f*dist(region.p0, region.p1)){ cur_p = p; }
+        qol_interp(cur_p, p, frame_info.animation_dt, 1e-14f);
+        draw_rectangle_fcolor(app, Rf32_xy_wh(cur_p.x, cur_p.y, 2.f, face_metrics.line_height), 0.f, fcolor_id(defcolor_cursor, 0));
       }
 
       region = pair.min;
@@ -541,7 +549,13 @@ qol_render_buffer(Application_Links *app, View_ID view_id, Face_ID face_id, Buff
     ARGB_Color cl_nest = fcolor_resolve(fcolor_change_alpha(fcolor_id(defcolor_control), 0.8f));
     Text_Layout_ID minimap_id = MM_begin(app, scratch, view_id, face_id, buffer, token_array, rect, visible_range, cl_nest);
     qol_paint_token_colors(app, buffer, minimap_id);
+    qol_paint_token_colors(app, buffer, minimap_id);
     MM_end(app, minimap_id);
+  }
+
+  if (rect_contains_point(rect, qol_cur_cursor_pos) &&
+      def_get_config_b32(vars_save_string_lit("use_function_tooltip"))){
+    qol_draw_function_tooltip(app, buffer, cursor_pos);
   }
 
   draw_set_clip(app, prev_clip);
@@ -565,7 +579,7 @@ qol_render_caller(Application_Links *app, Frame_Info frame_info, View_ID view_id
   f32 digit_advance = face_metrics.decimal_digit_advance;
 
   // NOTE(allen): query bars
-  region = qol_draw_query_bars(app, region, view_id, face_id);
+  region = qol_draw_query_bars(app, frame_info, region, view_id, face_id);
 
   // NOTE(allen): file bar
   b64 showing_file_bar = false;
@@ -726,8 +740,8 @@ qol_draw_peek(Application_Links *app, Frame_Info frame_info){
       Code_Index_File *file = code_index_get_file(b);
       if (file == 0){ continue; }
 
-      for (i32 i = 0; i < file->note_array.count; i += 1){
-        Code_Index_Note *n = file->note_array.ptrs[i];
+      for (i32 i = 0; i < file->root.note_array.count; i += 1){
+        Code_Index_Note *n = file->root.note_array.ptrs[i];
         if (!string_match(n->text, lexeme)){ continue; }
 
         peek_buffer = b;
@@ -749,7 +763,7 @@ qol_draw_peek(Application_Links *app, Frame_Info frame_info){
   draw_line_highlight(app, text_layout_id, peek_line, fcolor_id(defcolor_highlight_cursor_line));
 
   Rect_f32 prev_clip = draw_set_clip(app, text_layout_region(app, text_layout_id));
-  qol_paint_token_colors(app, peek_buffer, text_layout_id);
+  qol_paint_cpp_token_colors(app, peek_buffer, text_layout_id);
   draw_text_layout_default(app, text_layout_id);
   text_layout_free(app, text_layout_id);
   draw_set_clip(app, prev_clip);

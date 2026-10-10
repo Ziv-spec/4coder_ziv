@@ -50,6 +50,8 @@
 #include "4coder_delta_rule.cpp"
 #include "4coder_layout_rule.cpp"
 #include "4coder_code_index.cpp"
+#include "4coder_cpp_parser.cpp"
+#include "4coder_virtual_whitespace.cpp"
 #include "4coder_fancy.cpp"
 #include "4coder_draw.cpp"
 #include "4coder_font_helper.cpp"

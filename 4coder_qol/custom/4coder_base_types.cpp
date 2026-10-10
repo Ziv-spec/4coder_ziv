@@ -302,6 +302,11 @@ abs_f32(f32 x){
 #include <math.h>
 
 function f32
+sqrt_f32(f32 x){
+  return(sqrtf(x));
+}
+
+function f32
 pow_f32(f32 x, f32 y){
   return(powf(x, y));
 }
@@ -1452,43 +1457,34 @@ near_zero(f32 p, f32 epsilon){
 function b32
 near_zero(Vec2_f32 p, f32 epsilon){
   return(-epsilon <= p.x && p.x <= epsilon &&
-           -epsilon <= p.y && p.y <= epsilon);
+         -epsilon <= p.y && p.y <= epsilon);
 }
 function b32
 near_zero(Vec3_f32 p, f32 epsilon){
   return(-epsilon <= p.x && p.x <= epsilon &&
-           -epsilon <= p.y && p.y <= epsilon &&
-           -epsilon <= p.z && p.z <= epsilon);
+         -epsilon <= p.y && p.y <= epsilon &&
+         -epsilon <= p.z && p.z <= epsilon);
 }
 function b32
 near_zero(Vec4_f32 p, f32 epsilon){
   return(-epsilon <= p.x && p.x <= epsilon &&
-           -epsilon <= p.y && p.y <= epsilon &&
-           -epsilon <= p.z && p.z <= epsilon &&
-           -epsilon <= p.w && p.w <= epsilon);
+         -epsilon <= p.y && p.y <= epsilon &&
+         -epsilon <= p.z && p.z <= epsilon &&
+         -epsilon <= p.w && p.w <= epsilon);
 }
 
-function b32
-near_zero(f32 p){ return(near_zero(p, epsilon_f32)); }
-function b32
-near_zero(Vec2_f32 p){ return(near_zero(p, epsilon_f32)); }
-function b32
-near_zero(Vec3_f32 p){ return(near_zero(p, epsilon_f32)); }
-function b32
-near_zero(Vec4_f32 p){ return(near_zero(p, epsilon_f32)); }
+function b32 near_zero(f32 p){ return(near_zero(p, epsilon_f32)); }
+function b32 near_zero(Vec2_f32 p){ return(near_zero(p, epsilon_f32)); }
+function b32 near_zero(Vec3_f32 p){ return(near_zero(p, epsilon_f32)); }
+function b32 near_zero(Vec4_f32 p){ return(near_zero(p, epsilon_f32)); }
 
-function Vec2_f32
-hadamard(Vec2_f32 a, Vec2_f32 b){
-  return(V2f32(a.x*b.x, a.y*b.y));
-}
-function Vec3_f32
-hadamard(Vec3_f32 a, Vec3_f32 b){
-  return(V3f32(a.x*b.x, a.y*b.y, a.z*b.z));
-}
-function Vec4_f32
-hadamard(Vec4_f32 a, Vec4_f32 b){
-  return(V4f32(a.x*b.x, a.y*b.y, a.z*b.z, a.w*b.w));
-}
+function Vec2_f32 hadamard(Vec2_f32 a, Vec2_f32 b){ return(V2f32(a.x*b.x, a.y*b.y)); }
+function Vec3_f32 hadamard(Vec3_f32 a, Vec3_f32 b){ return(V3f32(a.x*b.x, a.y*b.y, a.z*b.z)); }
+function Vec4_f32 hadamard(Vec4_f32 a, Vec4_f32 b){ return(V4f32(a.x*b.x, a.y*b.y, a.z*b.z, a.w*b.w)); }
+
+function f32 dot(Vec2_f32 a, Vec2_f32 b){ return a.x*b.x + a.y*b.y; }
+function f32 length(Vec2_f32 v){ return sqrt_f32(dot(v,v)); }
+function f32 dist(Vec2_f32 a, Vec2_f32 b){ return length(a-b); }
 
 ////////////////////////////////
 

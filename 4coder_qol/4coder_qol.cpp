@@ -40,6 +40,7 @@ function b32 MC_filter_command(Custom_Command_Function *func);
 #define CUSTOM_COMMAND_MC_PASTE_SIG(name)  CUSTOM_COMMAND_MC_SIG(name, 4) // 4 == MC_Command_CursorPaste
 
 #include "languages/qol_parser_helper.h"
+#include "languages/qol_languages.h"
 #include "4coder_default_include.cpp"
 #include "languages/cpp_parser.cpp"
 #include "languages/lua_parser.cpp"
@@ -92,6 +93,7 @@ global Lister_Node* g_qol_mouse_node;
 #include "4coder_qol_token.cpp"
 
 #include "languages/qol_languages.cpp"
+#include "languages/non_code.cpp"
 
 #pragma warning(disable : 4706)
 #include "4coder_qol_bindings.cpp"
@@ -126,9 +128,13 @@ void custom_layer_init(Application_Links *app){
   MC_register(command_lister,   MC_Command_Global);
   MC_register(theme_lister,     MC_Command_Global);
 
-  qol_lang_register(Lang_None, lang_lex_async_nop, lang_lex_sync_nop, lang_parse_nop, lang_paint_nop);
-  qol_lang_register(Lang_Cpp, lex_full_input_async_cpp, lex_full_input_cpp, cpp_parse_file, qol_get_token_color_cpp);
-  qol_lang_register(Lang_Lua, lex_full_input_async_lua, lex_full_input_lua, lua_parse_file, qol_get_token_color_lua);
+  //qol_lang_register(Lang_None, lang_lex_async_nop, lang_lex_sync_nop, lang_parse_nop, lang_paint_nop);
+  qol_lang_register(Lang_None, lex_full_input_async_none, lex_full_input_none, lang_parse_nop, qol_get_token_color_none);  // none_parse_file
+  qol_lang_register(Lang_Cpp,  lex_full_input_async_cpp,  lex_full_input_cpp,  cpp_parse_file, qol_get_token_color_cpp);
+  qol_lang_register(Lang_4ed,  lex_full_input_async_cpp,  lex_full_input_cpp,  cpp_parse_file, qol_get_token_color_cpp);
+  qol_lang_register(Lang_XSL,  lex_full_input_async_cpp,  lex_full_input_cpp,  cpp_parse_file, qol_get_token_color_cpp);
+  qol_lang_register(Lang_Cpp,  lex_full_input_async_cpp,  lex_full_input_cpp,  cpp_parse_file, qol_get_token_color_cpp);
+  qol_lang_register(Lang_Lua,  lex_full_input_async_lua,  lex_full_input_lua,  lua_parse_file, qol_get_token_color_lua);
 
 
   // Set up custom layer hooks

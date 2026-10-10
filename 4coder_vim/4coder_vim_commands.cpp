@@ -22,9 +22,10 @@ CUSTOM_DOC("Sets the right size of the view near the x position of the cursor.")
 }
 
 VIM_COMMAND_SIG(vim_normal_mode){
-  if(mc_context.active){ // && vim_state.mode == VIM_Normal && vim_state.sub_mode == SUB_None && vim_state.number == 0){
+  if(mc_context.active){ // && vim_state.mode == VIM_Normal && vim_state.sub_mode == SUB_None && vim_state.number == 0)
     MC_end(app);
-  }else if(vim_state.mode == VIM_Insert){
+  }
+  else if(vim_state.mode == VIM_Insert){
     vim_set_insert_register(app);
     View_ID view = get_active_view(app, Access_ReadVisible);
     Buffer_ID buffer = view_get_buffer(app, view, Access_ReadVisible);

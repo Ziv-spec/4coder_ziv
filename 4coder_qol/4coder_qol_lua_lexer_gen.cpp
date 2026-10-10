@@ -318,11 +318,13 @@ build_language_model(void){
 
   sm_select_state(string_multi);
   sm_case("]", string_multi_close);
+  sm_case_eof(D("LiteralStringMulti"));
   sm_fallback(string_multi);
 
   sm_select_state(string_multi_close);
   sm_case("=", string_multi_close);  // TODO: inc exit counter
   sm_case("]", D("LiteralStringMulti"));  // TODO: enter==exit ? (-{emit}-> root) :  (-{exit=0}-> string_multi)
+  sm_case_eof(D("LiteralStringMulti"));
   sm_fallback(string_multi);
 
   S(minus_or_comment, D("OpSub")){
@@ -335,19 +337,23 @@ build_language_model(void){
 
   sm_select_state(comment_short);
   sm_case("\n", D("CommentShort"));
+  sm_case_eof(D("CommentShort"));
   sm_fallback(comment_short);
 
   sm_select_state(comment_loop);
   sm_case("=", comment_loop); // TODO: inc enter counter
   sm_case("[", comment_long);
+  sm_case_eof(D("CommentLong"));
   sm_fallback(comment_short);
 
   sm_select_state(comment_long);
   sm_case("]", comment_long_close);
+  sm_case_eof(D("CommentLong"));
   sm_fallback(comment_long);
 
   sm_select_state(comment_long_close);
   sm_case("=", comment_long_close);  // TODO: inc exit counter
   sm_case("]", D("CommentLong"));  // TODO: enter==exit ? (-{emit}-> root) :  (-{exit=0}-> comment_long)
+  sm_case_eof(D("CommentLong"));
   sm_fallback(comment_long);
 }

@@ -161,8 +161,8 @@ function void TAB_render_bar(Application_Links *app, Frame_Info frame_info, View
     String_Const_u8 pre  = string_prefix(full, max_len-1);
     String_Const_u8 name = (full.size <= max_len ? full : push_stringf(scratch, "%.*s…", string_expand(pre)));
     Vec2_f32 p0 = V2f32(tabs[i].cur_x, y0);
-    Rect_f32 rect = rect_inner(Rf32_xy_wh(p0, tab_dim), -5.f);
-    draw_rectangle(app, rect, 5.f, is_current ? cl_curr : cl_rect);
+    Rect_f32 rect = Rf32_xy_wh(p0, tab_dim);
+    draw_rectangle(app, rect_inner(rect, -5.f), 5.f, is_current ? cl_curr : cl_rect);
     draw_string(app, face, name, p0, fcolor_resolve(fcolor_id(defcolor_text_default)));
 
     if (rect_contains_point(rect, mouse_pos)){

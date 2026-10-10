@@ -155,6 +155,10 @@ code_index_update_tick(Application_Links *app){
     Arena arena = make_arena_system(KB(16));
     Code_Index_File *index = push_array_zero(&arena, Code_Index_File, 1);
     index->buffer = buffer_id;
+    index->root.file  = index;
+    index->root.kind  = CodeIndexNest_File;
+    index->root.open  = Ii64(0,0);
+    index->root.close = Ii64(contents.size);
 
     Generic_Parse_State state = {};
     generic_parse_init(app, &arena, contents, &tokens, &state);
@@ -280,7 +284,7 @@ recursive_nest_highlight(Application_Links *app, Text_Layout_ID layout_id, Range
 function void
 recursive_nest_highlight(Application_Links *app, Text_Layout_ID layout_id, Range_i64 range,
                          Code_Index_File *file){
-  recursive_nest_highlight(app, layout_id, range, &file->nest_array, 0);
+  recursive_nest_highlight(app, layout_id, range, &file->root.nest_array, 0);
 }
 
 function void

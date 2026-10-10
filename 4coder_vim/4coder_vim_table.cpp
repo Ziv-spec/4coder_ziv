@@ -194,6 +194,7 @@ function void vim_table_builtin(Table *t);
 function b32 vim_parse_vim_keys(Application_Links *app, Arena *arena, Config *parsed, Config_Assignment *node){
   Table t = {};
   vim_table_builtin(&t);
+  i64 builtin_len = t.len;
 
   if (!string_match(node->l->identifier, string_u8_litexpr("keys_vim")) || node->r->type != ConfigRValueType_Compound){ return false; }
   for (Config_Compound_Element *e=node->r->compound->first; e; e=e->next){
@@ -270,10 +271,13 @@ function b32 vim_parse_vim_keys(Application_Links *app, Arena *arena, Config *pa
     if (error_text.size > 0){
       print_message(app, error_text);
     }
-    table_free(&t);
-  }else{
+  }
+
+  if (parsed->errors.first == 0 || vim_table.len == builtin_len){
     table_free(&vim_table);
     vim_table = t;
+  }else{
+    table_free(&t);
   }
 
   return true;

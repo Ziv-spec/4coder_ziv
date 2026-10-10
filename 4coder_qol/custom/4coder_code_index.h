@@ -13,6 +13,18 @@ struct Code_Index_Nest_List{
   i32 count;
 };
 
+struct Code_Index_Note_List{
+  struct Code_Index_Note *first;
+  struct Code_Index_Note *last;
+  i32 count;
+};
+
+struct Code_Index_Note_Ptr_Array{
+  Code_Index_Note **ptrs;
+  i32 count;
+};
+
+
 struct Code_Index_Nest_Ptr_Array{
   struct Code_Index_Nest **ptrs;
   i32 count;
@@ -24,8 +36,36 @@ enum{
   CodeIndexNest_Paren,
   CodeIndexNest_Preprocessor,
   CodeIndexNest_Statement,
+  CodeIndexNest_COUNT,
+  CodeIndexNest_File,
   CodeIndexNest_PProc = CodeIndexNest_Preprocessor,
   CodeIndexNest_Stmnt = CodeIndexNest_Statement,
+};
+
+enum VWS_Action{
+  VWS_ACT_Nop,
+  VWS_ACT_Reset,
+  VWS_ACT_Inc,
+  VWS_ACT_Reflex,
+};
+
+enum VWS_Q{
+  VWS_Q_Start,
+  VWS_Q_Paren,
+  VWS_Q_COUNT,
+};
+
+struct VWS_Transition{
+  VWS_Q q;
+  VWS_Action act;
+};
+
+VWS_Transition vws_table[VWS_Q_COUNT][CodeIndexNest_COUNT];
+
+struct VWS_State{
+  VWS_Q q;
+  f32 shift;
+  i64 reflex_pos;
 };
 
 struct Code_Index_Nest{
@@ -36,11 +76,16 @@ struct Code_Index_Nest{
   Range_i64 open;
   Range_i64 close;
 
+  //i64 parent_x_id;
+  //VWS_State vws_state;
+
   struct Code_Index_File *file;
   Code_Index_Nest *parent;
 
   Code_Index_Nest_List nest_list;
+  Code_Index_Note_List note_list;
   Code_Index_Nest_Ptr_Array nest_array;
+  Code_Index_Note_Ptr_Array note_array;
 };
 
 typedef i64 Code_Index_Note_Kind;
@@ -65,22 +110,8 @@ struct Code_Index_Note{
   Code_Index_Note *next_in_hash;
 };
 
-struct Code_Index_Note_List{
-  Code_Index_Note *first;
-  Code_Index_Note *last;
-  i32 count;
-};
-
-struct Code_Index_Note_Ptr_Array{
-  Code_Index_Note **ptrs;
-  i32 count;
-};
-
 struct Code_Index_File{
-  Code_Index_Nest_List nest_list;
-  Code_Index_Nest_Ptr_Array nest_array;
-  Code_Index_Note_List note_list;
-  Code_Index_Note_Ptr_Array note_array;
+  Code_Index_Nest root;
   Buffer_ID buffer;
   i64 lang_id;
 };
