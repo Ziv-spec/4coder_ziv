@@ -142,7 +142,7 @@ get_or_open_build_panel(Application_Links *app){
   if (view == 0){
     view = open_build_footer_panel(app);
   }
-  if (view == g_qol_b_view){
+  if (g_qol_b_view && view == g_qol_b_view){
     qol_bview_open(app);
   }
   return(view);

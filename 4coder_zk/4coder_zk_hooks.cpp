@@ -34,7 +34,7 @@ CUSTOM_DOC("ZK command for responding to a startup event")
         zk_setup_essential_mapping(&framework_mapping, global_map_id, file_map_id, code_map_id);
       }
       else{
-        TAB_setup_default_mapping(&framework_mapping, global_map_id, file_map_id, code_map_id);
+        //TAB_setup_default_mapping(&framework_mapping, global_map_id, file_map_id, code_map_id);
         zk_setup_default_mapping(&framework_mapping, global_map_id, file_map_id, code_map_id);
         zk_setup_essential_mapping(&framework_mapping, global_map_id, file_map_id, code_map_id);
       }
@@ -67,9 +67,11 @@ CUSTOM_DOC("ZK command for responding to a startup event")
 
     qol_snippet_init(app);
     TAB_startup_inner(app);
-    qol_bview_init(app);
-  }
+    if (!def_get_config_b32(vars_save_string_lit("filebar_on_top"))) {
+      qol_bview_init(app);
+    }
 
+  }
   {
     def_audio_init();
   }
@@ -80,7 +82,7 @@ CUSTOM_DOC("ZK command for responding to a startup event")
   }
 
   Face_Description desc = get_global_face_description(app);
-  desc.parameters.pt_size -= 4;
+  desc.parameters.pt_size -= 2 ;
   qol_small_face = try_create_new_face(app, &desc);
 
   String_Const_u8 non_word_chars = string_u8_litexpr(" \t\n/\\()\"':,.;<>~!@#$%^&*|+=[]{}`?-_");
@@ -118,9 +120,6 @@ zk_tick(Application_Links *app, Frame_Info frame_info){
   }
 
 }
-
-
-
 
 function void
 zk_render_buffer(Application_Links *app, View_ID view_id, Face_ID face_id, Buffer_ID buffer, Text_Layout_ID text_layout_id, Rect_f32 rect){
@@ -262,7 +261,7 @@ zk_render_buffer(Application_Links *app, View_ID view_id, Face_ID face_id, Buffe
   draw_text_layout_default(app, text_layout_id);
 
   if (rect_contains_point(rect, qol_cur_cursor_pos) &&
-        def_get_config_b32(vars_save_string_lit("use_function_tooltip"))){
+      def_get_config_b32(vars_save_string_lit("use_function_tooltip"))){
     zk_draw_function_tooltip(app, buffer, rect, cursor_pos);
   }
 
@@ -304,7 +303,7 @@ zk_render_caller(Application_Links *app, Frame_Info frame_info, View_ID view_id)
   if (view_get_setting(app, view_id, ViewSetting_ShowFileBar, &showing_file_bar) && showing_file_bar){
     b32 on_top = def_get_config_b32(vars_save_string_lit("filebar_on_top"));
     Rect_f32_Pair pair = (on_top ?
-                            layout_file_bar_on_top(region, line_height) :
+                          layout_file_bar_on_top(region, line_height) :
                           layout_file_bar_on_bot(region, line_height));
     zk_draw_file_bar(app, view_id, buffer, face_id, pair.e[1-on_top]);
     region = pair.e[on_top];
@@ -446,7 +445,7 @@ BUFFER_HOOK_SIG(zk_begin_buffer){
   Line_Ending_Kind *eol_setting = scope_attachment(app, scope, buffer_eol_setting, Line_Ending_Kind);
   *eol_setting = setting;
 
-  {
+  if (is_code) {
     ProfileBlock(app, "begin buffer kick off lexer");
     Async_Task *lex_task_ptr = scope_attachment(app, scope, buffer_lex_task, Async_Task);
     *lex_task_ptr = async_task_no_dep(&global_async_system, qol_lang_full_lex_async, make_data_struct(&buffer_id));
@@ -454,7 +453,7 @@ BUFFER_HOOK_SIG(zk_begin_buffer){
 
 
   b32 wrap_lines = (buffer_has_name_with_star(app, buffer_id) ?
-                      def_get_config_b32(vars_save_string_lit("enable_output_wrapping")) :
+                    def_get_config_b32(vars_save_string_lit("enable_output_wrapping")) :
                     def_get_config_b32(vars_save_string_lit("enable_code_wrapping")));
   b32 *wrap_lines_ptr = scope_attachment(app, scope, buffer_wrap_lines, b32);
   *wrap_lines_ptr = wrap_lines;

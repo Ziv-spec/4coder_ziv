@@ -60,6 +60,7 @@ CUSTOM_DOC("List all definitions in the code index and jump to one chosen by the
   }
 }
 
+//-
 
 #if OS_WINDOWS
 function String_Const_u8
@@ -240,7 +241,7 @@ zk_go_to_definition_at_cursor(Application_Links *app, b32 same_panel) {
 
   Token *token = get_token_from_pos(app, buffer, pos);
   if (token == NULL || token->size <= 0 ||
-        token->kind == TokenBaseKind_Whitespace) return;
+      token->kind == TokenBaseKind_Whitespace) return;
   String_Const_u8 query = push_buffer_range(app, scratch, buffer, Ii64(token));
 
   if (token->kind != TokenBaseKind_LiteralString) {
@@ -358,7 +359,7 @@ CUSTOM_DOC("[ZK] Jump to the definition of identifier at the cursor other panel"
   zk_go_to_definition_at_cursor(app, 0);
 }
 
-//~ Mouse behavior stuff
+//- Mouse behavior stuff
 
 
 CUSTOM_COMMAND_MC_GLOBAL_SIG(zk_mouse_column_toggle)
@@ -447,7 +448,7 @@ CUSTOM_DOC("[QOL] Prompt deletion of text in the cursor/mark rectangle")
   }
 }
 
-//~
+//-
 
 CUSTOM_COMMAND_SIG(casey_delete_to_end_of_line)
 CUSTOM_DOC("Deletes everything from the cursor to the end of the line.")
@@ -470,7 +471,7 @@ CUSTOM_DOC("Deletes everything from the cursor to the end of the line.")
   i32 size = (i32)buffer_get_size(app, buffer);
   range.end = clamp_top(range.end, size);
   if (range_size(range) == 0 ||
-        buffer_get_char(app, buffer, range.end - 1) != '\n'){
+      buffer_get_char(app, buffer, range.end - 1) != '\n'){
     range.start -= 1;
     range.first = clamp_bot(0, range.first);
   }
@@ -478,7 +479,7 @@ CUSTOM_DOC("Deletes everything from the cursor to the end of the line.")
 }
 
 
-//~
+//-
 
 
 CUSTOM_COMMAND_SIG(zk_find_divider_up_or_notepadlike_highlight)

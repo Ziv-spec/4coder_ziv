@@ -11,6 +11,8 @@ global f32 g_double_click_t;
 #include "4coder_qol_lister.h"
 #include "4coder_qol_bview.h"
 
+function void zk_build_panel_init(Application_Links *app);
+
 function Lister_Result zk_run_lister(Application_Links *app, Lister *lister);
 #define run_lister zk_run_lister
 
@@ -55,7 +57,6 @@ global Vec2_f32 qol_cur_cursor_pos;
 global Vec2_f32 qol_nxt_cursor_pos;
 global Vec2_f32 qol_cur_mark_pos;
 global Vec2_f32 qol_nxt_mark_pos;
-
 
 #define HOVER_TIME 0.25f
 global f32 g_hover_dt;
@@ -107,7 +108,6 @@ global Lister_Node* g_qol_mouse_node;
 
 #include "4coder_qol_hooks.cpp"
 
-
 #include "../4coder_zk/4coder_loco_yeets.cpp" // actually this can be places as if it is a plugin (since it really is written like one)
 #include "../4coder_zk/4coder_zk_search.cpp"
 #include "../4coder_zk/4coder_zk_commands.cpp"
@@ -115,6 +115,7 @@ global Lister_Node* g_qol_mouse_node;
 #include "../4coder_zk/4coder_zk_draw.cpp"
 #include "../4coder_zk/4coder_zk_hooks.cpp"
 #include "../4coder_zk/4coder_zk_lister.cpp"
+#include "../4coder_zk/4coder_zk_build_commands.cpp"
 
 void custom_layer_init(Application_Links *app){
   Thread_Context *tctx = get_thread_context(app);
@@ -126,8 +127,8 @@ void custom_layer_init(Application_Links *app){
   MC_register(command_lister,   MC_Command_Global);
   MC_register(theme_lister,     MC_Command_Global);
 
-  //qol_lang_register(Lang_None, lang_lex_async_nop, lang_lex_sync_nop, lang_parse_nop, lang_paint_nop);
-  qol_lang_register(Lang_None, lex_full_input_async_none, lex_full_input_none, lang_parse_nop, qol_get_token_color_none);  // none_parse_file
+  qol_lang_register(Lang_None, lang_lex_async_nop, lang_lex_sync_nop, lang_parse_nop, lang_paint_nop);
+  //qol_lang_register(Lang_None, lex_full_input_async_none, lex_full_input_none, lang_parse_nop, qol_get_token_color_none);  // none_parse_file
   qol_lang_register(Lang_Cpp,  lex_full_input_async_cpp,  lex_full_input_cpp,  cpp_parse_file, qol_get_token_color_cpp);
   qol_lang_register(Lang_4ed,  lex_full_input_async_cpp,  lex_full_input_cpp,  cpp_parse_file, qol_get_token_color_cpp);
   qol_lang_register(Lang_XSL,  lex_full_input_async_cpp,  lex_full_input_cpp,  cpp_parse_file, qol_get_token_color_cpp);
@@ -199,6 +200,7 @@ void custom_layer_init(Application_Links *app){
 // jump_to_prev is just fine, or have a good intuitition about what should truly happen instead.
 
 
+// TODO: [ ] Bug mouse doesn't work on hte right area of the panel (look into minimap mouse left click eating the event and marking it handled even though it should not)
 // TODO(ziv): Recover Fleury's layer capabilities
 // In the parser: ( I truly consider whether it is worthwhile to pursue this, since this is a very searchable thing )
 //  - Add tags

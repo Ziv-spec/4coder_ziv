@@ -20,7 +20,6 @@ zk_setup_essential_mapping(Mapping *mapping, i64 global_id, i64 file_id, i64 cod
   BindMouseRelease(MM_Wrap(click_set_cursor), MouseCode_Left);
   BindCore(MM_Wrap(click_set_cursor_and_mark), CoreCode_ClickActivateView);
   BindMouseMove(MM_Wrap(click_set_cursor_if_lbutton));
-  //BindMouseDoubleClick(zk_word_select, MouseCode_Left);
 
   SelectMap(code_id);
   ParentMap(file_id);
@@ -46,8 +45,8 @@ zk_setup_default_mapping(Mapping *mapping, i64 global_id, i64 file_id, i64 code_
   Bind(change_to_build_panel,         KeyCode_Period, KeyCode_Alt);
   Bind(change_active_panel,           KeyCode_Comma, KeyCode_Control);
   Bind(change_active_panel_backwards, KeyCode_Comma, KeyCode_Control, KeyCode_Shift);
-  MC_Bind(close_build_panel,          KeyCode_Comma, KeyCode_Alt);
-  MC_Bind(build_in_build_panel,       KeyCode_M, KeyCode_Alt);
+  MC_Bind(zk_close_build_panel,          KeyCode_Comma, KeyCode_Alt);
+  MC_Bind(zk_build_in_build_panel,       KeyCode_M, KeyCode_Alt);
   Bind(zk_jump_to_definition_lister,  KeyCode_J, KeyCode_Control); // this is the lister version
 
   // Files
@@ -77,16 +76,22 @@ zk_setup_default_mapping(Mapping *mapping, i64 global_id, i64 file_id, i64 code_
   Bind(project_command_lister,        KeyCode_X, KeyCode_Alt, KeyCode_Shift);
   Bind(list_all_functions_current_buffer_lister, KeyCode_I, KeyCode_Control, KeyCode_Shift);
 
+  // Tabs
+  Bind(TAB_next,   KeyCode_PageDown, KeyCode_Control, KeyCode_Shift);
+  Bind(TAB_prev,   KeyCode_PageUp, KeyCode_Control, KeyCode_Shift);
+  Bind(TAB_new,    KeyCode_T,   KeyCode_Control);
+  Bind(TAB_close,  KeyCode_W,   KeyCode_Control, KeyCode_Shift);
+
+
   // bview stuff
 
   /* Consider how useful it can be, I don't know how to use it properly
   Bind(qol_bview_active_to_bottom, KeyCode_Return, KeyCode_Alt, KeyCode_Shift);
   Bind(qol_bview_bottom_to_active, KeyCode_Return, KeyCode_Alt);
   */
-
   Bind(qol_bview_toggle,           KeyCode_Equal, KeyCode_Alt);
-  Bind(qol_bview_scroll_up,        KeyCode_PageUp, KeyCode_Control, KeyCode_Shift);
-  Bind(qol_bview_scroll_down,      KeyCode_PageDown, KeyCode_Control, KeyCode_Shift);
+  //Bind(qol_bview_scroll_up,        KeyCode_PageUp, KeyCode_Control, KeyCode_Shift);
+  //Bind(qol_bview_scroll_down,      KeyCode_PageDown, KeyCode_Control, KeyCode_Shift);
 
   Bind(project_fkey_command, KeyCode_F1);
   Bind(project_fkey_command, KeyCode_F2);
@@ -230,6 +235,12 @@ zk_setup_default_mapping(Mapping *mapping, i64 global_id, i64 file_id, i64 code_
   Bind(open_file_in_quotes,              KeyCode_1, KeyCode_Alt);
   Bind(open_matching_file_cpp,           KeyCode_2, KeyCode_Alt);
   Bind(write_zero_struct,                KeyCode_0, KeyCode_Control);
+
+  // Tabs
+  Bind(TAB_next,   KeyCode_PageDown, KeyCode_Control, KeyCode_Shift);
+  Bind(TAB_prev,   KeyCode_PageUp, KeyCode_Control, KeyCode_Shift);
+  Bind(TAB_new,    KeyCode_T,   KeyCode_Control);
+  Bind(TAB_close,  KeyCode_W,   KeyCode_Control, KeyCode_Shift);
 
   // Yeet sheet
   // loco_yeet_selected_range_or_jump

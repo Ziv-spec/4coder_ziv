@@ -123,6 +123,7 @@ CUSTOM_DOC("[QOL] Reloads the config.4coder file")
     Face_ID face = get_face_id(app, buffer);
     Face_Description desc = get_face_description(app, face);
     load_config_and_apply(app, &global_config_arena, desc.parameters.pt_size, desc.parameters.hinting);
+    zk_build_panel_init(app);
   }
 }
 
@@ -448,7 +449,7 @@ qol_move_selection(Application_Links *app, Scan_Direction direction){
   range.max += 1 + (buffer_get_char(app, buffer, range.max) == '\r');
 
   i64 target_pos = (is_up ?
-                      get_line_pos_range(app, buffer, line0 - 1).min :
+                    get_line_pos_range(app, buffer, line0 - 1).min :
                     get_line_pos_range(app, buffer, line1 + 1).max + 1);
 
   Scratch_Block scratch(app);
@@ -494,7 +495,7 @@ qol_find_divider(Application_Links *app, Scan_Direction direction){
     Token *token = token_it_read(&it);
 
     b32 correct_direction = ((token->pos < pos && direction == Scan_Backward) ||
-                               (token->pos > pos && direction == Scan_Forward));
+                             (token->pos > pos && direction == Scan_Forward));
 
     String_Const_u8 tail = {};
     if (correct_direction && token_it_check_and_get_lexeme(app, scratch, &it, TokenBaseKind_Comment, &tail)){
@@ -507,7 +508,7 @@ qol_find_divider(Application_Links *app, Scan_Direction direction){
     }
 
     b32 has_next = (direction == Scan_Forward ?
-                      token_it_inc_non_whitespace(&it) :
+                    token_it_inc_non_whitespace(&it) :
                     token_it_dec_non_whitespace(&it));
     if (!has_next){ break; }
   }
@@ -602,7 +603,7 @@ CUSTOM_DOC("[QOL] response to a try-exit event")
 
   b32 do_exit = true;
   if (!allow_immediate_close_without_checking_for_changes &&
-        qol_dirty_buffer_count(app) != 0){
+      qol_dirty_buffer_count(app) != 0){
     qol_try_exit_view = get_active_view(app, Access_Always);
     do_exit = false;
     for (;;){

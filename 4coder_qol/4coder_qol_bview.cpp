@@ -98,6 +98,8 @@ qol_bview_render(Application_Links *app, Frame_Info frame_info, View_ID view){
 
 function void
 qol_tick_bview(Application_Links *app, Frame_Info frame_info){
+  if (!g_qol_b_view) return;
+
   Face_ID face_id = get_face_id(app, 0);
   Face_Metrics metrics = get_face_metrics(app, face_id);
   f32 block_height = lister_get_block_height(metrics.line_height);
@@ -159,7 +161,8 @@ qol_bview_init(Application_Links *app){
   Panel_ID split = panel_split(app, root, Dimension_Y);
   if (split){
     panel_set_split(app, split, PanelSplitKind_FixedPixels_Max, 1.f);
-    g_qol_b_view = panel_get_view(app, panel_get_child(app, split, Side_Max), Access_Always);
+    Panel_ID child =  panel_get_child(app, split, Side_Max);
+    g_qol_b_view = panel_get_view(app, child, Access_Always);
     view_enqueue_command_function(app, g_qol_b_view, qol_bview_spin);
     view_set_setting(app, g_qol_b_view, ViewSetting_ShowFileBar, false);
     view_set_passive(app, g_qol_b_view, true);
