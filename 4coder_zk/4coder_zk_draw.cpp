@@ -145,7 +145,7 @@ zk_draw_function_tooltip(Application_Links *app, Buffer_ID buffer, Rect_f32 regi
       Code_Index_Note *note = code_index_note_from_string(lexeme);
       if (note == NULL){ continue; }
       if (note->note_kind == CodeIndexNote_Function ||
-            note->note_kind == CodeIndexNote_Macro)
+          note->note_kind == CodeIndexNote_Macro)
       {
         Code_Index_Nest *paren_define = note->parent->nest_list.first;
         if (paren_define != NULL && paren_define->kind == CodeIndexNest_Paren){
@@ -270,13 +270,23 @@ function void
 zk_draw_notepad_style_cursor_highlight(Application_Links *app, View_ID view_id,
                                        Buffer_ID buffer, Text_Layout_ID text_layout_id,
                                        f32 roundness){
+  ProfileBlock(app, "ZK draw notepad style cursor and highlight");
+
   b32 has_highlight_range = draw_highlight_range(app, view_id, buffer, text_layout_id, roundness);
   if (!has_highlight_range){
     i32 cursor_sub_id = default_cursor_sub_id();
     i64 cursor_pos = view_get_cursor_pos(app, view_id);
     i64 mark_pos = view_get_mark_pos(app, view_id);
     if (cursor_pos != mark_pos){
-      Range_i64 range = Ii64(cursor_pos, mark_pos);
+      Range_i64 highlight_range = Ii64(cursor_pos, mark_pos);
+      Range_i64 visible_range = text_layout_get_visible_range(app, text_layout_id);
+      Range_i64 range = range_intersect(highlight_range, visible_range);
+      // TODO(ziv): draw_character_block is horiffically slow on long layouts
+      // this is because it layouts each and every character on screen, merges thier layouts
+      // and only then draws the merged layout. An important core change would be the
+      // introduction of a function that or A just gives the rectangle for a range of characters
+      // on a single line, or more tools to introspect on how does it layout the characters on
+      // screen so I can just know ahead of time and calculate everything I need myself.
       draw_character_block(app, text_layout_id, range, roundness, fcolor_id(defcolor_highlight));
       paint_text_color_fcolor(app, text_layout_id, range, fcolor_id(defcolor_at_highlight));
     }

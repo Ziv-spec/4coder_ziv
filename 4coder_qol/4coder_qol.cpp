@@ -206,6 +206,7 @@ void custom_layer_init(Application_Links *app){
 // [ ] notepad cursor full support
 //   [x] selection across all neccesary commands
 //   [ ] double click to select token, triple click to select line
+// [x] Bug mouse doesn't work on hte right area of the panel (look into minimap mouse left click eating the event and marking it handled even though it should not)
 //
 // Review the behavior of 'quick_swap_buffer' I remember I Had problems with it at some point
 // yeah. So the beahvior that I don't like is that when I am jumping around many files, one after
@@ -216,7 +217,6 @@ void custom_layer_init(Application_Links *app){
 // jump_to_prev is just fine, or have a good intuitition about what should truly happen instead.
 
 
-// TODO: [ ] Bug mouse doesn't work on hte right area of the panel (look into minimap mouse left click eating the event and marking it handled even though it should not)
 // TODO(ziv): Recover Fleury's layer capabilities
 // In the parser: ( I truly consider whether it is worthwhile to pursue this, since this is a very searchable thing )
 //  - Add tags
