@@ -1,0 +1,4 @@
+test_build/*
+.session.4coder
+.vs/
+custom_4coder.*
