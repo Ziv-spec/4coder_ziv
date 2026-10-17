@@ -13,15 +13,18 @@ zk_lister_render(Application_Links *app, Frame_Info frame_info, View_ID view){
     return;
   }
 
+  Rect_f32 region = view_get_screen_rect(app, view);
+  Rect_f32 prev_clip = draw_set_clip(app, region);
+
   Face_ID face_id = get_face_id(app, 0);
   Face_Metrics metrics = get_face_metrics(app, face_id);
   f32 line_height = metrics.line_height;
   f32 block_height = lister_get_block_height(line_height);
   f32 text_field_height = lister_get_text_field_height(line_height);
 
+  // Draw file bar
   b64 showing_file_bar = false;
   b32 hide_file_bar_in_ui = def_get_config_b32(vars_save_string_lit("hide_file_bar_in_ui"));
-  Rect_f32 region = view_get_screen_rect(app, view);
   if (view_get_setting(app, view, ViewSetting_ShowFileBar, &showing_file_bar) && showing_file_bar && !hide_file_bar_in_ui){
     b32 on_top = def_get_config_b32(vars_save_string_lit("filebar_on_top"));
     Rect_f32_Pair pair = (on_top ?
@@ -29,10 +32,57 @@ zk_lister_render(Application_Links *app, Frame_Info frame_info, View_ID view){
                           layout_file_bar_on_bot(region, line_height));
     zk_draw_file_bar(app, view, view_get_buffer(app, view, Access_Always), face_id, pair.e[1-on_top]);
     region = pair.e[on_top];
-  }
-  draw_rectangle_fcolor(app, region, 0.f, fcolor_id(defcolor_back));
-  Rect_f32 prev_clip = draw_set_clip(app, region);
 
+    // this is super dumb but yeah
+    if (!on_top) {
+      pair = rect_split_top_bottom_neg(region, 2.f);
+      draw_rectangle_fcolor(app, pair.max, 0.f, fcolor_id(defcolor_bar));
+      region = pair.min;
+    }
+  }
+
+  // Draw background
+  draw_rectangle_fcolor(app, region, 0.f, fcolor_id(defcolor_back));
+
+  // Draw description below
+  i32 idx = lister->highlighted_node->raw_index;
+  if (lister->highlighted_node &&
+      0 <= idx && idx <= ArrayCount(fcoder_metacmd_table) &&
+      fcoder_metacmd_table[idx].description) {
+
+    // Make sure we are on a command (so something with a description)
+    String_Const_u8 name = SCu8(fcoder_metacmd_table[idx].name);
+    String_Const_u8 description = SCu8(fcoder_metacmd_table[idx].description);
+    if (string_match(name, lister->highlighted_node->string)) {
+      Rect_f32_Pair pair = layout_file_bar_on_bot(region, line_height);
+      Rect_f32 status_bar_rect = pair.max;
+
+      u32 bottom_color = fcolor_resolve(fcolor_id(defcolor_back));
+      u32 corner_color = fcolor_resolve(fcolor_id(defcolor_margin_hover));
+      draw_rectangle_outline_corner_parameters(app, status_bar_rect,
+                                               5.f, 5.f, 0, 0,
+                                               2.f, 2.f, 2.f, 2.f,
+                                               corner_color, corner_color,
+                                               bottom_color,bottom_color);
+
+      Vec2_f32 p = V2f32(status_bar_rect.x0 + 3.f, status_bar_rect.y0 + 3);
+      Fancy_Line text_field = {};
+      push_fancy_string(scratch, &text_field, fcolor_id(defcolor_line_numbers_text), description);
+
+      f32 width = get_fancy_line_width(app, face_id, &text_field);
+      f32 cap_width = status_bar_rect.x1 - p.x - 6.f;
+      if (cap_width < width) {
+        Rect_f32 prect = draw_set_clip(app, Rf32(p.x, status_bar_rect.y0, p.x + cap_width, status_bar_rect.y1));
+        draw_fancy_line(app, face_id, fcolor_zero(), &text_field, p);
+        draw_set_clip(app, prect);
+      }
+      else {
+        draw_fancy_line(app, face_id, fcolor_zero(), &text_field, p);
+      }
+
+      region = pair.min;
+    }
+  }
 
   lister->visible_count = (i32)((rect_height(region)/block_height)) - 3;
   lister->visible_count = clamp_bot(1, lister->visible_count);
@@ -47,8 +97,8 @@ zk_lister_render(Application_Links *app, Frame_Info frame_info, View_ID view){
   FColor text_color = fcolor_id(defcolor_text_default);
   FColor margin_color = fcolor_id(defcolor_margin);
 
+  // Draw index of current lister item (from Long_Lister_RenderHUD)
   {
-    // from Long_Lister_RenderHUD
     Vec2_f32 p;
 
     f32 margin_size = 3.f;
@@ -358,8 +408,8 @@ zk_lister__backspace_text_field__file_path(Application_Links *app){
 
       lister->item_index = 0;
       lister_zero_scroll(lister);
-      zk_lister_call_refresh_handler(app,lister);
-      //zk_lister_update_filtered_list(app, lister);
+      //zk_lister_call_refresh_handler(app,lister);
+      zk_lister_update_filtered_list(app, lister);
     }
   }
 }
