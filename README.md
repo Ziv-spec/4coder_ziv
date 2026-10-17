@@ -1,14 +1,21 @@
 
-My personal [4coder](https://github.com/4coder-community/4cc/releases/tag/latest) custom layer
+
+This is a fork of BYP's [4coder](https://github.com/4coder-community/4cc/releases/tag/latest) custom layer adapated to my needs. 
 
 ```sh
 cd \path\to\4ed.exe
-git clone https://github.com/B-Y-P/4coder_byp.git
-cd 4coder_byp
+git clone https://github.com/Ziv-spec/4coder_ziv.git
+cd 4coder_ziv
 build release
 ```
 
 </br>
+
+This layer is a work in progress. 
+
+It relies heavily on the modifications I do on my 4cc [fork](https://github.com/Ziv-spec/4cc/tree/win_smooth_resize)
+
+So please only use it if you also plan on using that fork 4ed.exe
 
 ### Common issue for Windows:
 
