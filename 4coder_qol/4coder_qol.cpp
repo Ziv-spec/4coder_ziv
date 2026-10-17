@@ -108,6 +108,14 @@ global Lister_Node* g_qol_mouse_node;
 
 #include "4coder_qol_hooks.cpp"
 
+static float g_mouse_click_dt;
+static int g_mouse_button_state_history[3];
+enum {
+  InputMouseButtonState_SingleClick,
+  InputMouseButtonState_DoubleClick,
+};
+#define DOUBLE_CLICK_TIME 0.5f
+
 #include "../4coder_zk/4coder_loco_yeets.cpp" // actually this can be places as if it is a plugin (since it really is written like one)
 #include "../4coder_zk/4coder_zk_search.cpp"
 #include "../4coder_zk/4coder_zk_commands.cpp"
@@ -116,6 +124,14 @@ global Lister_Node* g_qol_mouse_node;
 #include "../4coder_zk/4coder_zk_hooks.cpp"
 #include "../4coder_zk/4coder_zk_lister.cpp"
 #include "../4coder_zk/4coder_zk_build_commands.cpp"
+
+// All of zk code is kind of garbage. It works but I don't like that it is so much
+// copy pasta like. I am curretly depending heavily on BYP's work with qol, which is good.
+// There is a lot of great stuff but... I did end up just modifying a whole bunch and
+// copying code here and there. 4coder base types are mad hard to work with because of
+// the amount of templates, wierd things and lack of docs. So lot's to improve there too.
+// Generally I think making plugins (stand alone features with hooks) but I don't do that
+// which is a shame. I will hopefully do that at some point, just not right now.
 
 void custom_layer_init(Application_Links *app){
   Thread_Context *tctx = get_thread_context(app);
@@ -139,7 +155,7 @@ void custom_layer_init(Application_Links *app){
   {
     set_custom_hook(app, HookID_BufferViewerUpdate, default_view_adjust);
 
-    set_custom_hook(app, HookID_ViewEventHandler, qol_view_input_handler);
+    set_custom_hook(app, HookID_ViewEventHandler, zk_view_input_handler);
     set_custom_hook(app, HookID_Tick, zk_tick);
     set_custom_hook(app, HookID_RenderCaller, zk_render_caller);
     set_custom_hook(app, HookID_WholeScreenRenderCaller, zk_whole_screen_render_caller);

@@ -29,7 +29,7 @@ write_text(Application_Links *app, String_Const_u8 insert){
           char c = string.str[string.size - 1];
           if (c != '\n'){
             if (character_is_whitespace(insert.str[0]) &&
-                  character_is_whitespace(c)){
+                character_is_whitespace(c)){
               do_merge = true;
             }
             else if (character_is_alpha_numeric(insert.str[0]) && character_is_alpha_numeric(c)){
@@ -279,13 +279,39 @@ CUSTOM_DOC("Reads the scroll wheel value from the mouse state and scrolls accord
 {
   View_ID view = get_active_view(app, Access_ReadVisible);
   Mouse_State mouse = get_mouse_state(app);
-  if (mouse.wheel != 0){
+  if (mouse.wheel.y != 0.f || mouse.wheel.x != 0.f){
     Buffer_Scroll scroll = view_get_buffer_scroll(app, view);
-    scroll.target = view_move_buffer_point(app, view, scroll.target, V2f32(0.f, (f32)mouse.wheel));
+    scroll.target = view_move_buffer_point(app, view, scroll.target, mouse.wheel);
     view_set_buffer_scroll(app, view, scroll, SetBufferScroll_SnapCursorIntoView);
   }
   if (mouse.l){
     no_mark_snap_to_cursor(app, view);
+  }
+}
+
+CUSTOM_COMMAND_SIG(mouse_wheel_scroll_over_hovered_view)
+CUSTOM_DOC("Reads the scroll wheel value from the mouse state and scrolls the view currently under the mouse accordingly.")
+{
+  Mouse_State mouse = get_mouse_state(app);
+  View_ID active_view = get_active_view(app, Access_ReadVisible);
+  if (mouse.wheel.y != 0.f || mouse.wheel.x != 0.f){
+    for(View_ID view = get_view_next(app, 0, Access_ReadVisible);
+        view != 0;
+        view = get_view_next(app, view, Access_ReadVisible)) {
+      Rect_f32 view_rect = view_get_screen_rect(app, view);
+      if(rect_contains_point(view_rect, V2f32(mouse.p)))
+      {
+        Buffer_Scroll scroll = view_get_buffer_scroll(app, view);
+        scroll.target = view_move_buffer_point(app, view, scroll.target, mouse.wheel);
+        view_set_buffer_scroll(app, view, scroll, SetBufferScroll_NoCursorChange);
+        if (fcoder_mode == FCoderMode_NotepadLike) no_mark_snap_to_cursor(app, active_view);
+        active_view = view;
+        break;
+      }
+    }
+  }
+  if (mouse.l){
+    no_mark_snap_to_cursor(app, active_view);
   }
 }
 
@@ -815,10 +841,10 @@ CUSTOM_DOC("Reads the state of the mouse wheel and uses it to either increase or
   if (now >= next_resize_time){
     next_resize_time = now + 50*1000;
     Mouse_State mouse = get_mouse_state(app);
-    if (mouse.wheel > 0){
+    if (mouse.wheel.y > 0){
       decrease_face_size(app);
     }
-    else if (mouse.wheel < 0){
+    else if (mouse.wheel.y < 0){
       increase_face_size(app);
     }
   }
@@ -944,7 +970,7 @@ isearch(Application_Links *app, Scan_Direction start_scan, i64 first_pos,
 
     b32 string_change = false;
     if (match_key_code(&in, KeyCode_Return) ||
-          match_key_code(&in, KeyCode_Tab)){
+        match_key_code(&in, KeyCode_Tab)){
       Input_Modifier_Set *mods = &in.event.key.modifiers;
       if (has_modifier(mods, KeyCode_Control)){
         bar.string.size = cstring_length(previous_isearch_query);
@@ -983,12 +1009,12 @@ isearch(Application_Links *app, Scan_Direction start_scan, i64 first_pos,
     Scan_Direction change_scan = scan;
     if (!string_change){
       if (match_key_code(&in, KeyCode_PageDown) ||
-            match_key_code(&in, KeyCode_Down)){
+          match_key_code(&in, KeyCode_Down)){
         change_scan = Scan_Forward;
         do_scan_action = true;
       }
       else if (match_key_code(&in, KeyCode_PageUp) ||
-                 match_key_code(&in, KeyCode_Up)){
+               match_key_code(&in, KeyCode_Up)){
         change_scan = Scan_Backward;
         do_scan_action = true;
       }
@@ -1232,9 +1258,9 @@ query_replace_base(Application_Links *app, View_ID view, Buffer_ID buffer_id, i6
 
     i64 size = buffer_get_size(app, buffer_id);
     if (match.max <= size &&
-          (match_key_code(&in, KeyCode_Y) ||
-             match_key_code(&in, KeyCode_Return) ||
-             match_key_code(&in, KeyCode_Tab))){
+        (match_key_code(&in, KeyCode_Y) ||
+         match_key_code(&in, KeyCode_Return) ||
+         match_key_code(&in, KeyCode_Tab))){
       buffer_replace_range(app, buffer_id, match, w);
       pos = match.start + w.size;
     }
@@ -1354,7 +1380,7 @@ CUSTOM_DOC("Read from the top of the point stack and jump there; if already ther
       i64 stack_pos = 0;
       if (point_stack_read_top(app, &stack_buffer, &stack_pos)){
         if (stack_buffer != 0 &&
-              (stack_buffer != buffer || stack_pos != pos)){
+            (stack_buffer != buffer || stack_pos != pos)){
           view_set_buffer(app, view, stack_buffer, 0);
           view_set_cursor_and_preferred_x(app, view, seek_pos(stack_pos));
           break;
@@ -1572,7 +1598,7 @@ CUSTOM_DOC("Delete the line the on which the cursor sits.")
   i32 size = (i32)buffer_get_size(app, buffer);
   range.end = clamp_top(range.end, size);
   if (range_size(range) == 0 ||
-        buffer_get_char(app, buffer, range.end - 1) != '\n'){
+      buffer_get_char(app, buffer, range.end - 1) != '\n'){
     range.start -= 1;
     range.first = clamp_bot(0, range.first);
   }
@@ -1828,7 +1854,7 @@ undo__flush_fades(Application_Links *app, Buffer_ID buffer){
        node = next){
     next = node->next;
     if (node->buffer_id == buffer &&
-          node->finish_call == undo__fade_finish){
+        node->finish_call == undo__fade_finish){
       undo__fade_finish(app, node);
       *prev_next = next;
       free_fade_range(node);
@@ -1857,9 +1883,9 @@ CUSTOM_DOC("Advances backwards through the undo history of the current buffer.")
     f32 undo_fade_time = 0.33f;
     b32 enable_undo_fade_out = def_get_config_b32(vars_save_string_lit("enable_undo_fade_out"));
     if (enable_undo_fade_out &&
-          undo_fade_time > 0.f &&
-          record.kind == RecordKind_Single &&
-          record.single_string_backward.size == 0){
+        undo_fade_time > 0.f &&
+        record.kind == RecordKind_Single &&
+        record.single_string_backward.size == 0){
       b32 has_hard_character = false;
       for (u64 i = 0; i < record.single_string_forward.size; i += 1){
         if (!character_is_whitespace(record.single_string_forward.str[i])){

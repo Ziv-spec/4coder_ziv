@@ -26,7 +26,6 @@ enum{
   InputEventKind_MouseMove,
   InputEventKind_Core,
   InputEventKind_CustomFunction,
-  // InputEventKind_MouseButtonDoubleClick,
 
   InputEventKind_COUNT,
 };
@@ -73,8 +72,8 @@ struct Input_Event{
       Input_Modifier_Set modifiers;
     } mouse;
     struct{
-      f32 value;
-      Vec2_i32 p;
+      f32 x;
+      f32 y;
       Input_Modifier_Set modifiers;
     } mouse_wheel;
     struct{

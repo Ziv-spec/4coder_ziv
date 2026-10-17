@@ -144,7 +144,7 @@ qol_bview_spin(Application_Links *app){
       no_mark_snap_to_cursor_if_shift(app, g_qol_b_view);
     }
     else if (in.event.kind == InputEventKind_MouseWheel) {
-      f32 mouse_scroll_amount = (f32)in.event.mouse_wheel.value;
+      f32 mouse_scroll_amount = (f32)in.event.mouse_wheel.y;
       Buffer_Scroll scroll = view_get_buffer_scroll(app, g_qol_b_view);
       scroll.target = view_move_buffer_point(app, g_qol_b_view, scroll.target, V2f32(0.f, mouse_scroll_amount));
       move_vertical_pixels(app, g_qol_b_view, mouse_scroll_amount);
@@ -158,11 +158,10 @@ qol_bview_spin(Application_Links *app){
 function void
 qol_bview_init(Application_Links *app){
   Panel_ID root = panel_get_root(app);
-  Panel_ID split = panel_split(app, root, Dimension_Y);
+  b32 split = panel_split(app, root, Dimension_Y);
   if (split){
-    panel_set_split(app, split, PanelSplitKind_FixedPixels_Max, 1.f);
-    Panel_ID child =  panel_get_child(app, split, Side_Max);
-    g_qol_b_view = panel_get_view(app, child, Access_Always);
+    panel_set_split(app, root, PanelSplitKind_FixedPixels_Max, 1.f);
+    g_qol_b_view = panel_get_view(app, panel_get_child(app, root, Side_Max), Access_Always);
     view_enqueue_command_function(app, g_qol_b_view, qol_bview_spin);
     view_set_setting(app, g_qol_b_view, ViewSetting_ShowFileBar, false);
     view_set_passive(app, g_qol_b_view, true);

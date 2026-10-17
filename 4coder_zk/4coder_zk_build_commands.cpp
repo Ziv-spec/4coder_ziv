@@ -7,12 +7,6 @@ global View_ID build_footer_panel_view_id = 0;
 
 function void
 zk_build_panel_init(Application_Links *app) {
-
-  // TODO(ziv): THERE IS A BUG HERE
-  // if you switch from file bar on top then bottom sometimes
-  // it will go nuts and the file bar on bottom will not work
-  // correctly. I don't currely know why that is, and should
-  // probably investigate.
   b32 show_bview = !def_get_config_b32(vars_save_string_lit("filebar_on_top"));
   if (show_bview) {
     if (!g_qol_b_view) {
@@ -21,6 +15,10 @@ zk_build_panel_init(Application_Links *app) {
   }
   else {
     view_close(app, g_qol_b_view);
+    Panel_ID root = panel_get_root(app);
+    if (root == 1) {
+      panel_set_split(app, root, PanelSplitKind_FixedPixels_Max, 0.f);
+    }
     g_qol_b_view = 0;
   }
 

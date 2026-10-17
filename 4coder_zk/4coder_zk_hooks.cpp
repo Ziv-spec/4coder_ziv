@@ -121,6 +121,65 @@ zk_tick(Application_Links *app, Frame_Info frame_info){
 
 }
 
+
+CUSTOM_COMMAND_SIG(zk_view_input_handler)
+CUSTOM_DOC("ZK Input consumption loop for views")
+{
+  Scratch_Block scratch(app);
+  default_input_handler_init(app, scratch);
+
+  View_ID view = get_this_ctx_view(app, Access_Always);
+  Managed_Scope scope = view_get_managed_scope(app, view);
+
+  for (;;){
+    // NOTE(allen): Get input
+    User_Input input = get_next_input(app, EventPropertyGroup_Any, 0);
+    if (input.abort){
+      break;
+    }
+
+    ProfileScopeNamed(app, "before view input", view_input_profile);
+
+    // NOTE(allen): Mouse Suppression
+    Event_Property event_properties = get_event_properties(&input.event);
+    if (suppressing_mouse && (event_properties & EventPropertyGroup_AnyMouseEvent) != 0){
+      continue;
+    }
+
+    // Handle Double click state
+    if (input.event.kind == InputEventKind_MouseButton && input.event.mouse.code == MouseCode_Left) {
+      g_mouse_button_state_history[1] = g_mouse_button_state_history[0];
+      g_mouse_button_state_history[0] = ((g_mouse_click_dt <= DOUBLE_CLICK_TIME) ?
+                                         InputMouseButtonState_DoubleClick : InputMouseButtonState_SingleClick);
+      g_mouse_click_dt = 0;
+    }
+
+    // NOTE(allen): Get binding
+    if (implicit_map_function == 0){
+      implicit_map_function = default_implicit_map;
+    }
+    Implicit_Map_Result map_result = implicit_map_function(app, 0, 0, &input.event);
+
+    if (map_result.command == 0){
+      leave_current_input_unhandled(app);
+      continue;
+    }
+    else if (map_result.command == MC_no_op) {
+      // This is only to not run qol_pre_command & qol_post_command
+      // which change some values for notepad like cursors
+      continue;
+    }
+
+    // NOTE(allen): Run the command and pre/post command stuff
+    qol_pre_command(app, scope);
+    ProfileCloseNow(view_input_profile);
+    map_result.command(app);
+    ProfileScope(app, "after view input");
+    qol_post_command(app, scope);
+  }
+}
+
+
 function void
 zk_render_buffer(Application_Links *app, View_ID view_id, Face_ID face_id, Buffer_ID buffer, Text_Layout_ID text_layout_id, Rect_f32 rect){
   ProfileScope(app, "zk render buffer");
@@ -307,6 +366,8 @@ zk_render_caller(Application_Links *app, Frame_Info frame_info, View_ID view_id)
                           layout_file_bar_on_bot(region, line_height));
     zk_draw_file_bar(app, view_id, buffer, face_id, pair.e[1-on_top]);
     region = pair.e[on_top];
+
+    has_bot_border = on_top;
   }
 
   if (!has_bot_border){

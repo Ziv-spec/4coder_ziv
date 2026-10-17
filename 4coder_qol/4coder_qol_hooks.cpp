@@ -205,7 +205,7 @@ BUFFER_HOOK_SIG(qol_begin_buffer){
   }
 
   b32 wrap_lines = (buffer_has_name_with_star(app, buffer_id) ?
-                      def_get_config_b32(vars_save_string_lit("enable_output_wrapping")) :
+                    def_get_config_b32(vars_save_string_lit("enable_output_wrapping")) :
                     def_get_config_b32(vars_save_string_lit("enable_code_wrapping")));
   *scope_attachment(app, scope, buffer_wrap_lines, b32) = wrap_lines;
 
@@ -229,26 +229,6 @@ CUSTOM_DOC("QOL Input consumption loop for views")
     User_Input input = get_next_input(app, EventPropertyGroup_Any, 0);
     if (input.abort){
       break;
-    }
-
-    // @Added by ziv
-    // NOTE(ziv): File dropping
-    if (input.event.kind == InputEventKind_Core && input.event.core.code == CoreCode_NewDropFiles) {
-
-      for (View_ID cur_view = get_view_next(app,0,Access_Always); cur_view != 0; cur_view = get_view_next(app,cur_view,Access_Always)) {
-        Vec2_f32 p = V2f32(get_mouse_state(app).p);
-        Rect_f32 view_rect = view_get_screen_rect(app, cur_view);
-        if (rect_contains_point(view_rect, p)) {
-          List_String_Const_u8 files = input.event.core.dropfiles;
-          if (files.first) {
-            view_open_file(app, cur_view, files.first->string, true);
-          }
-          for (Node_String_Const_u8 *file = files.first->next; file != NULL; file = file->next) {
-            Buffer_ID out_buffer; // we don't care about this
-            open_file(app, &out_buffer, file->string, false, true);
-          }
-        }
-      }
     }
 
     ProfileScopeNamed(app, "before view input", view_input_profile);

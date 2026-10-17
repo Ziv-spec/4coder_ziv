@@ -80,6 +80,7 @@ CUSTOM_DOC("[QOL] Jump to the definition in the code index matching an identifie
   }
 }
 
+#if 0 // TODO: Update to support new precision scrolling
 CUSTOM_COMMAND_SIG(qol_scroll_hovered)
 CUSTOM_DOC("[QOL] Scrolls hovered view")
 {
@@ -101,6 +102,7 @@ CUSTOM_DOC("[QOL] Scrolls hovered view")
     no_mark_snap_to_cursor(app, active_view);
   }
 }
+#endif
 
 CUSTOM_COMMAND_SIG(close_all_buffers)
 CUSTOM_DOC("[QOL] Closes all buffers")

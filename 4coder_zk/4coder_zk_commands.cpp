@@ -505,17 +505,153 @@ CUSTOM_DOC("[ZK] Find //- divider below cursor in orignal mode, on notepad mode 
 }
 
 
-CUSTOM_COMMAND_SIG(zk_mouse_wheel_scroll)
-CUSTOM_DOC("Reads the scroll wheel value from the mouse state and scrolls accordingly.")
+enum Selection_State_Kind {
+  SelectionState_None,
+  SelectionState_Word,
+  SelectionState_Line
+};
+
+struct Selection_State {
+  View_ID view;
+  Selection_State_Kind kind;
+  Range_i64 range;
+};
+
+global Selection_State ss;
+
+function Range_i64 get_word_range_under_cursor(Application_Links *app, Buffer_ID buffer, i64 pos) {
+  Range_i64 result = {0};
+  i64 buffer_size = buffer_get_size(app, buffer);
+  if (!(0 <= pos && pos < buffer_size))
+    return result;
+
+  // before cursor
+  for (i64 i = pos; i > 0; i--) {
+    result.min = i;
+
+    u8 character; buffer_read_range(app, buffer, Ii64(i, i - 1), &character);
+    if (!character_is_alpha_numeric_unicode(character)) break;
+  }
+  // after cursor
+  for (i64 i = pos; i < buffer_size; i++) {
+    result.max = i;
+
+    u8 character; buffer_read_range(app, buffer, Ii64(i, i + 1), &character);
+    if (!character_is_alpha_numeric_unicode(character)) break;
+  }
+  return result;
+}
+
+CUSTOM_COMMAND_SIG(zk_click_set_cursor_and_mark)
+CUSTOM_DOC("Sets the cursor position and mark to the mouse position. When using notepad mode, allows for double click to select a word, and triple click to select a line")
 {
   View_ID view = get_active_view(app, Access_ReadVisible);
   Mouse_State mouse = get_mouse_state(app);
-  if (mouse.wheel != 0){
-    Buffer_Scroll scroll = view_get_buffer_scroll(app, view);
-    scroll.target = view_move_buffer_point(app, view, scroll.target, V2f32(0.f, (f32)mouse.wheel));
+  i64 pos = view_pos_from_xy(app, view, V2f32(mouse.p));
 
+  if (view != ss.view) {
+    ss.view = view; // we switched a view
+    ss.kind = SelectionState_None;
+    ss.range = Ii64(pos, pos);
+  }
+
+  if (fcoder_mode == FCoderMode_NotepadLike &&
+      (range_contains_inclusive(ss.range, pos) &&
+       g_mouse_button_state_history[0] == InputMouseButtonState_DoubleClick)) {
+
+    Buffer_ID buffer = view_get_buffer(app, view, Access_Always);
+    if (g_mouse_button_state_history[1] == InputMouseButtonState_SingleClick ||
+        ss.kind == SelectionState_None ||
+        ss.kind == SelectionState_Line) {
+      ss.kind = SelectionState_Word; // highlight word
+
+      Token *token = get_token_from_pos(app, buffer, pos);
+      if (token) ss.range = Ii64(token);
+      else       ss.range = get_word_range_under_cursor(app, buffer, pos);
+    }
+    else if (ss.kind == SelectionState_Word) {
+      ss.kind = SelectionState_Line; // highlight line
+
+      i64 line = get_line_number_from_pos(app, buffer, pos);
+      Range_i64 range = get_line_pos_range(app, buffer, line);
+      ss.range = range;
+    }
+
+    view_set_mark(app, view, seek_pos(ss.range.min));
+    view_set_cursor(app, view, seek_pos(ss.range.max));
+    no_mark_snap_to_cursor(app, view);
+    return;
+  }
+
+  ss.kind = SelectionState_None;
+  ss.range = Ii64(pos, pos);
+  view_set_cursor_and_preferred_x(app, view, seek_pos(pos));
+  view_set_mark(app, view, seek_pos(pos));
+}
+
+CUSTOM_COMMAND_SIG(zk_click_set_cursor_if_lbutton)
+CUSTOM_DOC("If the mouse left button is pressed, sets the cursor position to the mouse position. When using notepad mode, allows highlighting to match selection size")
+{
+  View_ID view = get_active_view(app, Access_ReadVisible);
+  Mouse_State mouse = get_mouse_state(app);
+  if (mouse.l){
+    i64 pos = view_pos_from_xy(app, view, V2f32(mouse.p));
     if (fcoder_mode == FCoderMode_NotepadLike) {
-      // Support correct notepad like behavior
+      if (view != ss.view) {
+        ss.view = view; // we switched a view
+        ss.kind = SelectionState_None;
+        ss.range = Ii64(pos, pos);
+      }
+
+      Range_i64 selection_unit_to_add = { pos, pos };
+      Buffer_ID buffer = view_get_buffer(app, view, Access_Always);
+      if (ss.kind == SelectionState_Word) {
+        // When seleting a word we want to move selection in word sized units
+        Token *token = get_token_from_pos(app, buffer, pos);
+        if (token) {
+          selection_unit_to_add = Ii64(token);
+        }
+        else {
+          selection_unit_to_add = get_word_range_under_cursor(app, buffer, pos);
+        }
+      }
+      else if (ss.kind == SelectionState_Line) {
+        // When seleting a line we want to move selection in line sized units
+        i64 line = get_line_number_from_pos(app, buffer, pos);
+        Range_i64 range = get_line_pos_range(app, buffer, line);
+        selection_unit_to_add = range;
+      }
+
+      Range_i64 merged_range = range_union(ss.range, selection_unit_to_add);
+      Range_i64 corrected_range;
+      if (pos > ss.range.min) { // NOTE(ziv): This is an ugly way of correcting the cursor position
+        corrected_range = merged_range;
+      }
+      else {
+        corrected_range.min = merged_range.max;
+        corrected_range.max = merged_range.min;
+      }
+
+      view_set_cursor(app, view, seek_pos(corrected_range.max));
+      view_set_mark(app, view, seek_pos(corrected_range.min));
+    }
+    else {
+      view_set_cursor_and_preferred_x(app, view, seek_pos(pos));
+    }
+  }
+  no_mark_snap_to_cursor(app, view);
+  set_next_rewrite(app, view, Rewrite_NoChange);
+}
+
+CUSTOM_COMMAND_SIG(zk_mouse_wheel_scroll)
+CUSTOM_DOC("Reads the scroll wheel value from the mouse state and scrolls accordingly. If on notepad mode, does not remove selection when scrolling")
+{
+  View_ID view = get_active_view(app, Access_ReadVisible);
+  Mouse_State mouse = get_mouse_state(app);
+  if (mouse.wheel.y != 0.f || mouse.wheel.x != 0.f){
+    Buffer_Scroll scroll = view_get_buffer_scroll(app, view);
+    scroll.target = view_move_buffer_point(app, view, scroll.target, mouse.wheel);
+    if (fcoder_mode == FCoderMode_NotepadLike) {
       view_set_buffer_scroll(app, view, scroll, SetBufferScroll_NoCursorChange);
       no_mark_snap_to_cursor(app, view);
     }
@@ -524,38 +660,36 @@ CUSTOM_DOC("Reads the scroll wheel value from the mouse state and scrolls accord
     }
   }
   if (mouse.l){
-    i64 pos = view_pos_from_xy(app, view, V2f32(mouse.p));
-    view_set_cursor_and_preferred_x(app, view, seek_pos(pos));
     no_mark_snap_to_cursor(app, view);
   }
 }
 
-CUSTOM_COMMAND_SIG(zk_word_select)
-CUSTOM_DOC("Selects word under mouse")
+//-
+
+
+CUSTOM_COMMAND_SIG(zk_toggle_writer_mode)
+CUSTOM_DOC("Toggles writer mode")
 {
-  Scratch_Block scratch(app);
-  View_ID view = get_active_view(app, Access_Always);
-  Buffer_ID buffer = view_get_buffer(app, view, Access_Always);
-  Mouse_State m = get_mouse_state(app);
-  i64 pos = view_pos_from_xy(app, view, V2f32(m.p));
 
-  #if 0
-  Token *token = get_token_from_pos(app, buffer, pos);
-  if (token != 0 && token->size > 0 && token->kind != TokenBaseKind_Whitespace){
-    Range_i64 range = Ii64(token);
-    view_set_mark(app, view, seek_pos(range.min));
-    view_set_cursor(app, view, seek_pos(range.max));
+  // toggle
+  {
+    String_ID ontop = vars_save_string_lit("filebar_on_top");
+    b32 value = def_get_config_b32(ontop);
+    !value ? set_mode_to_notepad_like(app) : set_mode_to_original(app);
+    if (!value) {
+      View_ID view = get_active_view(app, Access_ReadVisible);
+      Buffer_ID buffer = view_get_buffer(app, view, Access_Always);
+      Managed_Scope scope = buffer_get_managed_scope(app, buffer);
+      b32 *wrap_lines_ptr = scope_attachment(app, scope, buffer_wrap_lines, b32);
+      if (wrap_lines_ptr != 0){
+        *wrap_lines_ptr = 1;
+        buffer_clear_layout_cache(app, buffer);
+      }
+    }
+
+    def_set_config_b32(ontop, !value);
   }
-  #else
-  i64 first_pos = 0;
-  String_Const_u8 word = zk_buffer_get_string_under_cursor(app, scratch, buffer, pos, &first_pos);
 
-  if (word.str != NULL && word.size > 0) {
-    Range_i64 range = { first_pos, first_pos + (i64)word.size};
-    view_set_mark(app, view, seek_pos(range.min));
-    view_set_cursor(app, view, seek_pos(range.max));
-  }
-  #endif
-
+  zk_build_panel_init(app);
 
 }

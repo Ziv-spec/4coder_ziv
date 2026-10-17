@@ -8,7 +8,7 @@ zk_setup_essential_mapping(Mapping *mapping, i64 global_id, i64 file_id, i64 cod
   BindCore(zk_startup, CoreCode_Startup);
   BindCore(qol_try_exit, CoreCode_TryExit);
   BindCore(clipboard_record_clip, CoreCode_NewClipboardContents);
-  BindMouseWheel(zk_mouse_wheel_scroll);
+  BindMouseWheel(mouse_wheel_scroll_over_hovered_view);
   BindMouseWheel(mouse_wheel_change_face_size, KeyCode_Control);
 
   SelectMap(file_id);
@@ -16,10 +16,10 @@ zk_setup_essential_mapping(Mapping *mapping, i64 global_id, i64 file_id, i64 cod
   MC_BindTextInput(qol_write_text_input);
 
   BindMouse(MM_Wrap(zk_mouse_column_toggle), MouseCode_Left, KeyCode_Alt);
-  BindMouse(MM_Wrap(click_set_cursor_and_mark), MouseCode_Left);
-  BindMouseRelease(MM_Wrap(click_set_cursor), MouseCode_Left);
+  BindMouse(MM_Wrap(zk_click_set_cursor_and_mark), MouseCode_Left);
+  // BindMouseRelease(MM_Wrap(click_set_cursor), MouseCode_Left);
   BindCore(MM_Wrap(click_set_cursor_and_mark), CoreCode_ClickActivateView);
-  BindMouseMove(MM_Wrap(click_set_cursor_if_lbutton));
+  BindMouseMove(MM_Wrap(zk_click_set_cursor_if_lbutton));
 
   SelectMap(code_id);
   ParentMap(file_id);
