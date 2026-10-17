@@ -7,6 +7,7 @@ zk_setup_essential_mapping(Mapping *mapping, i64 global_id, i64 file_id, i64 cod
   SelectMap(global_id);
   BindCore(zk_startup, CoreCode_Startup);
   BindCore(qol_try_exit, CoreCode_TryExit);
+  BindCore(open_dropped_files, CoreCode_NewDropFiles);
   BindCore(clipboard_record_clip, CoreCode_NewClipboardContents);
   BindMouseWheel(mouse_wheel_scroll_over_hovered_view);
   BindMouseWheel(mouse_wheel_change_face_size, KeyCode_Control);

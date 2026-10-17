@@ -103,7 +103,7 @@ zk_tick(Application_Links *app, Frame_Info frame_info){
   qol_tick(app, frame_info);
   f32 dt = frame_info.animation_dt;
 
-  g_double_click_t += dt;
+  g_mouse_click_dt += frame_info.literal_dt;
 
   if (g_use_minimap_hover) {
     g_hover_dt += dt;
@@ -548,3 +548,4 @@ function DELTA_RULE_SIG(zk_delta_rule)
   *velocity = V2f32(step_x.v, step_y.v);
   return(V2f32(step_x.p, step_y.p));
 }
+

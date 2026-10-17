@@ -2,7 +2,6 @@
 #include "../4coder_zk/4coder_zk_microsoft_crazyness.h"
 
 #include "4coder_default_include.h"
-global f32 g_double_click_t;
 
 //#define SNIPPET_EXPANSION "path/to/snippet.inc"
 
@@ -45,6 +44,7 @@ function b32 MC_filter_command(Custom_Command_Function *func);
 #include "4coder_default_include.cpp"
 #include "languages/cpp_parser.cpp"
 #include "languages/lua_parser.cpp"
+#include "4coder_dropfiles.cpp"
 
 #include "4coder_qol_jumps.cpp"
 

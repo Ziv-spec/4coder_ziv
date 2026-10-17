@@ -556,8 +556,8 @@ CUSTOM_DOC("Sets the cursor position and mark to the mouse position. When using 
   }
 
   if (fcoder_mode == FCoderMode_NotepadLike &&
-      (range_contains_inclusive(ss.range, pos) &&
-       g_mouse_button_state_history[0] == InputMouseButtonState_DoubleClick)) {
+      range_contains_inclusive(ss.range, pos) &&
+      g_mouse_button_state_history[0] == InputMouseButtonState_DoubleClick) {
 
     Buffer_ID buffer = view_get_buffer(app, view, Access_Always);
     if (g_mouse_button_state_history[1] == InputMouseButtonState_SingleClick ||
@@ -573,8 +573,7 @@ CUSTOM_DOC("Sets the cursor position and mark to the mouse position. When using 
       ss.kind = SelectionState_Line; // highlight line
 
       i64 line = get_line_number_from_pos(app, buffer, pos);
-      Range_i64 range = get_line_pos_range(app, buffer, line);
-      ss.range = range;
+      ss.range = get_line_pos_range(app, buffer, line);
     }
 
     view_set_mark(app, view, seek_pos(ss.range.min));

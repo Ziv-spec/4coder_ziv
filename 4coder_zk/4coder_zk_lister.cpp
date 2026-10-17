@@ -45,9 +45,8 @@ zk_lister_render(Application_Links *app, Frame_Info frame_info, View_ID view){
   draw_rectangle_fcolor(app, region, 0.f, fcolor_id(defcolor_back));
 
   // Draw description below
-  i32 idx = lister->highlighted_node->raw_index;
-  if (lister->highlighted_node &&
-      0 <= idx && idx <= ArrayCount(fcoder_metacmd_table) &&
+  i32 idx = lister->highlighted_node ? lister->highlighted_node->raw_index : -1;
+  if (0 <= idx && idx <= ArrayCount(fcoder_metacmd_table) &&
       fcoder_metacmd_table[idx].description) {
 
     // Make sure we are on a command (so something with a description)
