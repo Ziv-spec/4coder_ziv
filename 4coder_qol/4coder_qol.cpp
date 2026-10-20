@@ -197,15 +197,15 @@ void custom_layer_init(Application_Links *app){
 //   NOTE: In 'zk_begin_buffer' I give *yeet* a default Lexer for cpp. This is not robust and is a hack
 //         for now. I should probably implement a way of lexing/coloring each section individually.
 // [x] Show Mini Map on mouse hover (also created a hover time to activate)
-// [ ] zk_go_to_definition_same_panel
+// [x] zk_go_to_definition_same_panel
 //   [x] uses fleury logic for intuitive function/type finding
 //   [x] make that you can jump to folder in string & in #include <windows.h> you can jump to it
-//   [ ] fix bug with get next intitive node
+//   [x] fix bug with get next intitive node
 // [ ] search
 // [x] add selection range to cursor
-// [ ] notepad cursor full support
+// [x] notepad cursor full support
 //   [x] selection across all neccesary commands
-//   [ ] double click to select token, triple click to select line
+//   [x] double click to select token, triple click to select line
 // [x] Bug mouse doesn't work on hte right area of the panel (look into minimap mouse left click eating the event and marking it handled even though it should not)
 //
 // Review the behavior of 'quick_swap_buffer' I remember I Had problems with it at some point

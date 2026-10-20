@@ -895,6 +895,7 @@ CUSTOM_DOC("Looks for a project.4coder file in the current directory and tries t
   // TODO(allen): compress this _thoughtfully_
 
   ProfileScope(app, "load project");
+
   save_all_dirty_buffers(app);
   Scratch_Block scratch(app);
 
@@ -956,6 +957,80 @@ CUSTOM_DOC("Looks for a project.4coder file in the current directory and tries t
     String8 title = push_u8_stringf(scratch, "4coder project: %S", proj_name);
     set_window_title(app, title);
   }
+}
+
+function void load_project_async_inner(Async_Context *actx, String_Const_u8 data) {
+  // NOTE(ziv): Copypasta from load_project
+  if (data.size != sizeof(Variable_Handle)){ return; }
+  Variable_Handle prj_var = *(Variable_Handle *)data.str;
+  Application_Links *app = actx->app;
+
+  Scratch_Block scratch(app);
+
+  // NOTE(allen): Open All Project Files
+  Variable_Handle load_paths_var = vars_read_key(prj_var, vars_save_string_lit("load_paths"));
+  Variable_Handle load_paths_os_var = vars_read_key(load_paths_var, vars_save_string_lit(OS_NAME));
+
+  String_ID path_id = vars_save_string_lit("path");
+  String_ID recursive_id = vars_save_string_lit("recursive");
+  String_ID relative_id = vars_save_string_lit("relative");
+
+  Prj_Pattern_List whitelist = prj_pattern_list_from_var(scratch, vars_read_key(prj_var, vars_save_string_lit("patterns")));
+  Prj_Pattern_List blacklist = prj_pattern_list_from_var(scratch, vars_read_key(prj_var, vars_save_string_lit("blacklist_patterns")));
+
+  for (Variable_Handle load_path_var = vars_first_child(load_paths_os_var);
+       !vars_is_nil(load_path_var);
+       load_path_var = vars_next_sibling(load_path_var)){
+    Variable_Handle path_var = vars_read_key(load_path_var, path_id);
+    Variable_Handle recursive_var = vars_read_key(load_path_var, recursive_id);
+    Variable_Handle relative_var = vars_read_key(load_path_var, relative_id);
+
+    String8 path = vars_string_from_var(scratch, path_var);
+    b32 recursive = vars_b32_from_var(recursive_var);
+    b32 relative = vars_b32_from_var(relative_var);
+
+
+    u32 flags = 0;
+    if (recursive){
+      flags |= PrjOpenFileFlag_Recursive;
+    }
+
+    String8 file_dir = path;
+    if (relative){
+      String8 prj_dir = prj_path_from_project(scratch, prj_var);
+
+      String8List file_dir_list = {};
+      string_list_push(scratch, &file_dir_list, prj_dir);
+      string_list_push_overlap(scratch, &file_dir_list, '/', path);
+      string_list_push_overlap(scratch, &file_dir_list, '/', SCu8());
+      file_dir = string_list_flatten(scratch, file_dir_list, StringFill_NullTerminate);
+    }
+
+    prj_open_files_pattern_filter(app, file_dir, whitelist, blacklist, flags);
+  }
+
+  // NOTE(allen): Set Window Title
+  Variable_Handle proj_name_var = vars_read_key(prj_var, vars_save_string_lit("project_name"));
+  String_ID proj_name_id = vars_string_id_from_var(proj_name_var);
+  if (proj_name_id != 0){
+    String8 proj_name = vars_read_string(scratch, proj_name_id);
+    String8 title = push_u8_stringf(scratch, "4coder project: %S", proj_name);
+    set_window_title(app, title);
+  }
+}
+
+CUSTOM_COMMAND_MC_GLOBAL_SIG(load_project_async)
+CUSTOM_DOC("Looks for a project.4coder file in the current directory and tries to load it.  Looks in parent directories until a project file is found or there are no more parents.")
+{
+  save_all_dirty_buffers(app);
+  Scratch_Block scratch(app);
+
+  // NOTE(allen): Load the project file from the hot directory
+  String8 project_path = push_hot_directory(app, scratch);
+  File_Name_Data dump = dump_file_search_up_path(app, scratch, project_path, string_u8_litexpr("project.4coder"));
+  Variable_Handle prj_var = parse_project(app, scratch, dump); // This can not be done asynchronously
+
+  async_task_no_dep(&global_async_system, load_project_async_inner, make_data_struct(&prj_var));
 }
 
 CUSTOM_COMMAND_MC_GLOBAL_SIG(project_fkey_command)

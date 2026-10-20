@@ -56,7 +56,7 @@ CUSTOM_DOC("ZK command for responding to a startup event")
     default_4coder_side_by_side_panels(app, file_names);
 
     if (def_get_config_b32(vars_save_string_lit("automatically_load_project"))){
-      load_project(app);
+      load_project_async(app);
     }
 
     qol_temp_buffer = create_buffer(app, string_u8_litexpr("*qol_temp*"),
@@ -73,7 +73,7 @@ CUSTOM_DOC("ZK command for responding to a startup event")
 
   }
   {
-    def_audio_init();
+    // def_audio_init();
   }
 
   {
@@ -85,7 +85,7 @@ CUSTOM_DOC("ZK command for responding to a startup event")
   desc.parameters.pt_size -= 2 ;
   qol_small_face = try_create_new_face(app, &desc);
 
-  String_Const_u8 non_word_chars = string_u8_litexpr(" \t\n/\\()\"':,.;<>~!@#$%^&*|+=[]{}`?-_");
+  String_Const_u8 non_word_chars = string_u8_litexpr(" \t\n/\\()\"':,.;<>~!@#$%^&*|+=[]{}`?-");
   character_predicate_non_word = character_predicate_from_chars(non_word_chars);
   character_predicate_word     = character_predicate_not(&character_predicate_non_word);
 
