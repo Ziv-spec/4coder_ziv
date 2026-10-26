@@ -101,10 +101,9 @@ CUSTOM_DOC("ZK command for responding to a startup event")
 function void
 zk_tick(Application_Links *app, Frame_Info frame_info){
   qol_tick(app, frame_info);
+  mouse_click_tick(app, frame_info);
+
   f32 dt = frame_info.animation_dt;
-
-  g_mouse_click_dt += frame_info.literal_dt;
-
   if (g_use_minimap_hover) {
     g_hover_dt += dt;
     if (g_hover_dt < HOVER_TIME)
@@ -147,12 +146,7 @@ CUSTOM_DOC("ZK Input consumption loop for views")
     }
 
     // Handle Double click state
-    if (input.event.kind == InputEventKind_MouseButton && input.event.mouse.code == MouseCode_Left) {
-      g_mouse_button_state_history[1] = g_mouse_button_state_history[0];
-      g_mouse_button_state_history[0] = ((g_mouse_click_dt <= DOUBLE_CLICK_TIME) ?
-                                         InputMouseButtonState_DoubleClick : InputMouseButtonState_SingleClick);
-      g_mouse_click_dt = 0;
-    }
+    update_double_click_state(&input);
 
     // NOTE(allen): Get binding
     if (implicit_map_function == 0){
@@ -179,6 +173,75 @@ CUSTOM_DOC("ZK Input consumption loop for views")
   }
 }
 
+function Rect_f32
+rect_left_right_margin(Rect_f32 rect, f32 left, f32 right){
+  left  = clamp(rect.x0, left, rect.x1);
+  right = clamp(rect.x0, right, rect.x1);
+  Rect_f32 result = {
+    left, rect.y0, right, rect.y1
+  };
+  return(result);
+}
+
+function Rect_f32
+zk_buffer_layout_margin(Rect_f32 rect) {
+  float l = g_left_margin_size;
+  float r = (fcoder_mode == FCoderMode_NotepadLike) ? g_left_margin_size : 0;
+  Rect_f32 result = rect_left_right_margin(rect, rect.x0+l, rect.x1-r);
+  return result;
+}
+
+function Rect_f32
+zk_buffer_region(Application_Links *app, View_ID view_id, Rect_f32 region){
+  Buffer_ID buffer = view_get_buffer(app, view_id, Access_Always);
+  Face_ID face_id = get_face_id(app, buffer);
+  Face_Metrics metrics = get_face_metrics(app, face_id);
+  f32 line_height = metrics.line_height;
+  f32 digit_advance = metrics.decimal_digit_advance;
+
+  // NOTE(allen): query bars
+  {
+    Query_Bar *space[32];
+    Query_Bar_Ptr_Array query_bars = {};
+    query_bars.ptrs = space;
+    if (get_active_query_bars(app, view_id, ArrayCount(space), &query_bars)){
+      region = layout_query_bar_on_top(region, line_height, query_bars.count).max;
+    }
+  }
+
+  // NOTE(allen): file bar
+  b64 showing_file_bar = false;
+  b64 has_bot_border = false;
+  if (view_get_setting(app, view_id, ViewSetting_ShowFileBar, &showing_file_bar) && showing_file_bar){
+    b32 on_top = def_get_config_b32(vars_save_string_lit("filebar_on_top"));
+    Rect_f32_Pair pair = (on_top ?
+                          layout_file_bar_on_top(region, line_height) :
+                          layout_file_bar_on_bot(region, line_height));
+    region = pair.e[on_top];
+    has_bot_border = !on_top;
+  }
+
+  if (has_bot_border) {
+    region = rect_split_top_bottom_neg(region, 2.f).min;
+  }
+
+  // NOTE(allen): FPS hud
+  if (show_fps_hud){
+    region = layout_fps_hud_on_bottom(region, line_height).min;
+  }
+
+  // NOTE(allen): line numbers
+  if (def_get_config_b32(vars_save_string_lit("show_line_number_margins"))){
+    region = layout_line_number_margin(app, buffer, region, digit_advance).max;
+  }
+
+  // left and right margins a buffer has
+  {
+    region = zk_buffer_layout_margin(region);
+  }
+
+  return(region);
+}
 
 function void
 zk_render_buffer(Application_Links *app, View_ID view_id, Face_ID face_id, Buffer_ID buffer, Text_Layout_ID text_layout_id, Rect_f32 rect){
@@ -280,7 +343,7 @@ zk_render_buffer(Application_Links *app, View_ID view_id, Face_ID face_id, Buffe
     }
   }
 
-  // NOTE(rjf): Cursor Mark Range
+  // Cursor Mark Range
   if(is_active_view && fcoder_mode == FCoderMode_Original){
     zk_highlight_cursor_mark_range(app, view_id, text_layout_id, rect, metrics.text_height);
   }
@@ -367,10 +430,10 @@ zk_render_caller(Application_Links *app, Frame_Info frame_info, View_ID view_id)
     zk_draw_file_bar(app, view_id, buffer, face_id, pair.e[1-on_top]);
     region = pair.e[on_top];
 
-    has_bot_border = on_top;
+    has_bot_border = !on_top;
   }
 
-  if (!has_bot_border){
+  if (has_bot_border){
     Rect_f32_Pair pair = rect_split_top_bottom_neg(region, 2.f);
     draw_rectangle_fcolor(app, pair.max, 0.f, fcolor_id(defcolor_bar));
     region = pair.min;
@@ -418,7 +481,11 @@ zk_render_caller(Application_Links *app, Frame_Info frame_info, View_ID view_id)
     line_number_rect = pair.min;
     region = pair.max;
   }
-  region = rect_split_left_right(region, 4.f).max;
+
+  // left and right margins a buffer has
+  {
+    region = zk_buffer_layout_margin(region);
+  }
 
   // NOTE(allen): begin buffer render
   Buffer_Point buffer_point = scroll.position;
@@ -493,7 +560,8 @@ BUFFER_HOOK_SIG(zk_begin_buffer){
     *lang_ptr = Lang_Cpp;
   }
 
-  b32 is_code = (*lang_ptr != Lang_None);
+  b32 is_code = (*lang_ptr != Lang_None && *lang_ptr != Lang_Markdown);
+  b32 is_special_text = (*lang_ptr == Lang_Markdown); // also a hack
 
   String_ID file_map_id = vars_save_string_lit("keys_file");
   String_ID code_map_id = vars_save_string_lit("keys_code");
@@ -506,7 +574,7 @@ BUFFER_HOOK_SIG(zk_begin_buffer){
   Line_Ending_Kind *eol_setting = scope_attachment(app, scope, buffer_eol_setting, Line_Ending_Kind);
   *eol_setting = setting;
 
-  if (is_code) {
+  if (is_code || is_special_text) {
     ProfileBlock(app, "begin buffer kick off lexer");
     Async_Task *lex_task_ptr = scope_attachment(app, scope, buffer_lex_task, Async_Task);
     *lex_task_ptr = async_task_no_dep(&global_async_system, qol_lang_full_lex_async, make_data_struct(&buffer_id));
@@ -548,4 +616,3 @@ function DELTA_RULE_SIG(zk_delta_rule)
   *velocity = V2f32(step_x.v, step_y.v);
   return(V2f32(step_x.p, step_y.p));
 }
-

@@ -25,7 +25,8 @@ function Lang_ID qol_lang_id_for_ext(String_Const_u8 ext){
           string_match(ext, str8_lit("glsl"  )) ||
           string_match(ext, str8_lit("hlsl"  )) ? Lang_XSL :
           string_match(ext, str8_lit("4coder")) ? Lang_4ed :
-          string_match(ext, str8_lit("lua"   )) ? Lang_Lua : Lang_None);
+          string_match(ext, str8_lit("lua"   )) ? Lang_Lua :
+          string_match(ext, str8_lit("md"    )) ? Lang_Markdown : Lang_None);
 }
 
 function void qol_lang_full_lex_async(Async_Context *actx, String_Const_u8 data){

@@ -26,7 +26,7 @@ zk_lister_fill_index(Application_Links *app, Lister *lister){
             if (note->parent != 0) {
               Code_Index_Nest* scope = note->parent->next;
               sort = (scope != 0 && scope->kind == CodeIndexNest_Scope) ?
-                string_u8_litexpr("function") : string_u8_litexpr("function [decl]");
+                string_u8_litexpr("function") : string_u8_litexpr("decloration");
             }
           } break;
         }
@@ -361,7 +361,6 @@ CUSTOM_DOC("[ZK] Jump to the definition of identifier at the cursor other panel"
 
 //- Mouse behavior stuff
 
-
 CUSTOM_COMMAND_MC_GLOBAL_SIG(zk_mouse_column_toggle)
 CUSTOM_DOC("[ZK] Toggles the column for bumping and selects hovered char at mouse position")
 {
@@ -450,7 +449,7 @@ CUSTOM_DOC("[QOL] Prompt deletion of text in the cursor/mark rectangle")
 
 //-
 
-CUSTOM_COMMAND_SIG(casey_delete_to_end_of_line)
+CUSTOM_COMMAND_MC_CURSOR_SIG(casey_delete_to_end_of_line)
 CUSTOM_DOC("Deletes everything from the cursor to the end of the line.")
 {
   View_ID view = get_active_view(app, Access_ReadWriteVisible);
@@ -481,7 +480,6 @@ CUSTOM_DOC("Deletes everything from the cursor to the end of the line.")
 
 //-
 
-
 CUSTOM_COMMAND_SIG(zk_find_divider_up_or_notepadlike_highlight)
 CUSTOM_DOC("[ZK] Find //- divider above cursor")
 {
@@ -504,6 +502,35 @@ CUSTOM_DOC("[ZK] Find //- divider below cursor in orignal mode, on notepad mode 
   }
 }
 
+//- Double click to select word, triple click to select line
+
+// Place update_double_click_state(User_Input *input) inside of your view_input_handler hook
+// Place mouse_click_tick(Application_Links *app, Frame_Info frame_info) inside of tick hook
+
+#if !defined(DOUBLE_CLICK_TIME)
+#define DOUBLE_CLICK_TIME 0.5f
+#endif
+
+static f32 g_mouse_click_dt;
+
+typedef enum MBS { // MouseButtonState
+  MBS_SingleClick,
+  MBS_DoubleClick,
+} MBS;
+static MBS g_mouse_button_state_history[3];
+
+function void update_double_click_state(User_Input *input) {
+  if (input->event.kind == InputEventKind_MouseButton && input->event.mouse.code == MouseCode_Left) {
+    g_mouse_button_state_history[1] = g_mouse_button_state_history[0];
+    g_mouse_button_state_history[0] = ((g_mouse_click_dt <= DOUBLE_CLICK_TIME) ?
+                                       MBS_DoubleClick : MBS_SingleClick);
+    g_mouse_click_dt = 0;
+  }
+}
+
+inline function void mouse_click_tick(Application_Links *app, Frame_Info frame_info) {
+  g_mouse_click_dt += frame_info.literal_dt;
+}
 
 enum Selection_State_Kind {
   SelectionState_None,
@@ -550,17 +577,18 @@ CUSTOM_DOC("Sets the cursor position and mark to the mouse position. When using 
   i64 pos = view_pos_from_xy(app, view, V2f32(mouse.p));
 
   if (view != ss.view) {
-    ss.view = view; // we switched a view
+    // we switched a view, reset state
+    ss.view = view;
     ss.kind = SelectionState_None;
     ss.range = Ii64(pos, pos);
   }
 
   if (fcoder_mode == FCoderMode_NotepadLike &&
       range_contains_inclusive(ss.range, pos) &&
-      g_mouse_button_state_history[0] == InputMouseButtonState_DoubleClick) {
+      g_mouse_button_state_history[0] == MBS_DoubleClick) {
 
     Buffer_ID buffer = view_get_buffer(app, view, Access_Always);
-    if (g_mouse_button_state_history[1] == InputMouseButtonState_SingleClick ||
+    if (g_mouse_button_state_history[1] == MBS_SingleClick ||
         ss.kind == SelectionState_None ||
         ss.kind == SelectionState_Line) {
       ss.kind = SelectionState_Word; // highlight word
@@ -597,7 +625,7 @@ CUSTOM_DOC("If the mouse left button is pressed, sets the cursor position to the
     i64 pos = view_pos_from_xy(app, view, V2f32(mouse.p));
     if (fcoder_mode == FCoderMode_NotepadLike) {
       if (view != ss.view) {
-        ss.view = view; // we switched a view
+        ss.view = view; // we switched a view, reset state
         ss.kind = SelectionState_None;
         ss.range = Ii64(pos, pos);
       }
@@ -650,7 +678,7 @@ CUSTOM_DOC("Reads the scroll wheel value from the mouse state and scrolls accord
   if (mouse.wheel.y != 0.f || mouse.wheel.x != 0.f){
     Buffer_Scroll scroll = view_get_buffer_scroll(app, view);
     scroll.target = view_move_buffer_point(app, view, scroll.target, mouse.wheel);
-    if (fcoder_mode == FCoderMode_NotepadLike) {
+    if (fcoder_mode == FCoderMode_NotepadLike) { // This is the only change over regular scrolling (along with render_buffer remove functions that force cursor to jump)
       view_set_buffer_scroll(app, view, scroll, SetBufferScroll_NoCursorChange);
       no_mark_snap_to_cursor(app, view);
     }
@@ -665,33 +693,41 @@ CUSTOM_DOC("Reads the scroll wheel value from the mouse state and scrolls accord
 
 //-
 
+CUSTOM_COMMAND_SIG(zk_toggle_left_margin)
+CUSTOM_DOC("Toggles left margin between default of 4px, and 12px")
+{
+  // TODO(ziv): Think of a good way to not direcly encode the sizes here
+  // since controlling the initial value of the global variable will ruin
+  // this functionality without realizing why.
+  g_left_margin_size = (g_left_margin_size == 4.f) ? 12.f : 4.f;
+}
+
+//-
 
 CUSTOM_COMMAND_SIG(zk_toggle_writer_mode)
 CUSTOM_DOC("Toggles writer mode")
 {
 
-  // toggle
   {
     String_ID ontop = vars_save_string_lit("filebar_on_top");
     b32 value = def_get_config_b32(ontop);
     !value ? set_mode_to_notepad_like(app) : set_mode_to_original(app);
     if (!value) {
-      View_ID view = get_active_view(app, Access_ReadVisible);
-      Buffer_ID buffer = view_get_buffer(app, view, Access_Always);
-      Managed_Scope scope = buffer_get_managed_scope(app, buffer);
-      b32 *wrap_lines_ptr = scope_attachment(app, scope, buffer_wrap_lines, b32);
-      if (wrap_lines_ptr != 0){
-        *wrap_lines_ptr = 1;
-        buffer_clear_layout_cache(app, buffer);
-      }
+      toggle_line_wrap(app);
     }
-
     def_set_config_b32(ontop, !value);
   }
 
-  zk_build_panel_init(app);
+  zk_build_panel_init(app); // bview or regular panel
+  zk_toggle_left_margin(app);
+  toggle_highlight_line_at_cursor(app);
+
+  // Update the buffer region
+
+  /*
+  View_ID view = get_active_view(app, Access_Always);
+  Buffer_ID buffer = view_get_buffer(app, view, Access_Always);
+  buffer_clear_layout_cache(app, buffer);
+  */
 
 }
-
-
-//-

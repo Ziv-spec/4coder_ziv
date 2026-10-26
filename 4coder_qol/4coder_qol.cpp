@@ -70,6 +70,7 @@ global Color_Table qol_cur_colors;
 global Color_Table qol_nxt_colors;
 
 global Face_ID qol_small_face;
+global f32 g_left_margin_size = 4.f;
 
 global Buffer_ID qol_temp_buffer;
 
@@ -85,6 +86,7 @@ global View_ID g_qol_lister_view;
 global Lister* g_qol_lister;
 global Lister_Node* g_qol_mouse_node;
 
+
 #include "4coder_qol_helper.h"
 #include "4coder_qol_block.cpp"
 
@@ -93,6 +95,7 @@ global Lister_Node* g_qol_mouse_node;
 
 #include "languages/qol_languages.cpp"
 #include "languages/non_code.cpp"
+#include "languages/markdown.cpp"
 
 #pragma warning(disable : 4706)
 #include "4coder_qol_bindings.cpp"
@@ -108,19 +111,11 @@ global Lister_Node* g_qol_mouse_node;
 
 #include "4coder_qol_hooks.cpp"
 
-static float g_mouse_click_dt;
-static int g_mouse_button_state_history[3];
-enum {
-  InputMouseButtonState_SingleClick,
-  InputMouseButtonState_DoubleClick,
-};
-#define DOUBLE_CLICK_TIME 0.5f
-
 #include "../4coder_zk/4coder_loco_yeets.cpp" // actually this can be places as if it is a plugin (since it really is written like one)
 #include "../4coder_zk/4coder_zk_search.cpp"
-#include "../4coder_zk/4coder_zk_commands.cpp"
 #include "../4coder_zk/4coder_zk_bindings.cpp"
 #include "../4coder_zk/4coder_zk_draw.cpp"
+#include "../4coder_zk/4coder_zk_commands.cpp"
 #include "../4coder_zk/4coder_zk_hooks.cpp"
 #include "../4coder_zk/4coder_zk_lister.cpp"
 #include "../4coder_zk/4coder_zk_build_commands.cpp"
@@ -143,13 +138,13 @@ void custom_layer_init(Application_Links *app){
   MC_register(command_lister,   MC_Command_Global);
   MC_register(theme_lister,     MC_Command_Global);
 
-  qol_lang_register(Lang_None, lang_lex_async_nop, lang_lex_sync_nop, lang_parse_nop, lang_paint_nop);
-  //qol_lang_register(Lang_None, lex_full_input_async_none, lex_full_input_none, lang_parse_nop, qol_get_token_color_none);  // none_parse_file
-  qol_lang_register(Lang_Cpp,  lex_full_input_async_cpp,  lex_full_input_cpp,  cpp_parse_file, qol_get_token_color_cpp);
-  qol_lang_register(Lang_4ed,  lex_full_input_async_cpp,  lex_full_input_cpp,  cpp_parse_file, qol_get_token_color_cpp);
-  qol_lang_register(Lang_XSL,  lex_full_input_async_cpp,  lex_full_input_cpp,  cpp_parse_file, qol_get_token_color_cpp);
-  qol_lang_register(Lang_Cpp,  lex_full_input_async_cpp,  lex_full_input_cpp,  cpp_parse_file, qol_get_token_color_cpp);
-  qol_lang_register(Lang_Lua,  lex_full_input_async_lua,  lex_full_input_lua,  lua_parse_file, qol_get_token_color_lua);
+  qol_lang_register(Lang_None,     lang_lex_async_nop, lang_lex_sync_nop, lang_parse_nop, lang_paint_nop);
+  qol_lang_register(Lang_Cpp,      lex_full_input_async_cpp,  lex_full_input_cpp,  cpp_parse_file, qol_get_token_color_cpp);
+  qol_lang_register(Lang_4ed,      lex_full_input_async_cpp,  lex_full_input_cpp,  cpp_parse_file, qol_get_token_color_cpp);
+  qol_lang_register(Lang_XSL,      lex_full_input_async_cpp,  lex_full_input_cpp,  cpp_parse_file, qol_get_token_color_cpp);
+  qol_lang_register(Lang_Cpp,      lex_full_input_async_cpp,  lex_full_input_cpp,  cpp_parse_file, qol_get_token_color_cpp);
+  qol_lang_register(Lang_Lua,      lex_full_input_async_lua,  lex_full_input_lua,  lua_parse_file, qol_get_token_color_lua);
+  qol_lang_register(Lang_Markdown, lex_full_input_async_markdown, lex_full_input_markdown, lang_parse_nop, qol_get_token_color_markdown);
 
   // Set up custom layer hooks
   {
@@ -171,7 +166,7 @@ void custom_layer_init(Application_Links *app){
     set_custom_hook(app, HookID_NewFile, default_new_file);
     set_custom_hook(app, HookID_SaveFile, qol_file_save);
     set_custom_hook(app, HookID_BufferEditRange, zk_buffer_edit_range);
-    set_custom_hook(app, HookID_BufferRegion, qol_buffer_region);
+    set_custom_hook(app, HookID_BufferRegion, zk_buffer_region);
     set_custom_hook(app, HookID_ViewChangeBuffer, default_view_change_buffer);
 
     set_custom_hook(app, HookID_Layout, layout_unwrapped);
@@ -201,12 +196,13 @@ void custom_layer_init(Application_Links *app){
 //   [x] uses fleury logic for intuitive function/type finding
 //   [x] make that you can jump to folder in string & in #include <windows.h> you can jump to it
 //   [x] fix bug with get next intitive node
-// [ ] search
 // [x] add selection range to cursor
 // [x] notepad cursor full support
 //   [x] selection across all neccesary commands
 //   [x] double click to select token, triple click to select line
 // [x] Bug mouse doesn't work on hte right area of the panel (look into minimap mouse left click eating the event and marking it handled even though it should not)
+// [ ] bug with minimaps when hovering over them left clicking then hovering out it does not continue the minimap as the user is expecting.
+// [ ] search
 //
 // Review the behavior of 'quick_swap_buffer' I remember I Had problems with it at some point
 // yeah. So the beahvior that I don't like is that when I am jumping around many files, one after

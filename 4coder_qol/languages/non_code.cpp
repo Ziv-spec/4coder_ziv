@@ -13,12 +13,12 @@ u64 g_non_code_table[256] = {
 
 #define EMIT_CHECK(Z, I, T) EMIT(Z, I, T); if(count++ > limit){ *state = {pos,I,b}; return false; }
 #define EMIT(Z, I, T)                   \
-  Token token = {};                     \
-  token.pos = pos;                      \
-  token.size = I-pos+Z;                 \
-  token.kind = T;                       \
-  token_list_push(arena, list, &token); \
-  pos=I+Z; I = I-1+Z;
+Token token = {};                     \
+token.pos = pos;                      \
+token.size = I-pos+Z;                 \
+token.kind = T;                       \
+token_list_push(arena, list, &token); \
+pos=I+Z; I = I-1+Z;
 
 internal b32
 lex_full_input_non_code_breaks(Arena *arena, Token_List *list, Lex_State_Non_Code* state, String_Const_u8 contents, i64 limit){

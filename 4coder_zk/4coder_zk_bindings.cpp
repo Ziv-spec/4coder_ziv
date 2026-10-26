@@ -181,7 +181,7 @@ zk_setup_default_mapping(Mapping *mapping, i64 global_id, i64 file_id, i64 code_
 
   // Search
   Bind(qol_search,                  KeyCode_F, KeyCode_Control);
-  Bind(zk_reverse_search,          KeyCode_R, KeyCode_Control);
+  Bind(zk_reverse_search,           KeyCode_R, KeyCode_Control);
   Bind(list_all_locations,          KeyCode_F, KeyCode_Control, KeyCode_Shift);
   Bind(list_all_substring_locations_case_insensitive, KeyCode_F, KeyCode_Alt);
   Bind(list_all_locations_of_selection,  KeyCode_G, KeyCode_Control, KeyCode_Shift);

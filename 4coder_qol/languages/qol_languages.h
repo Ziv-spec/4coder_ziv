@@ -6,6 +6,7 @@ enum Lang_ID{
   Lang_4ed,
   Lang_XSL,
   Lang_Lua,
+  Lang_Markdown,
   Lang_COUNT,
 };
 

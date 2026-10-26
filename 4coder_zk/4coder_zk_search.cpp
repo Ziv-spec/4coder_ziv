@@ -788,9 +788,9 @@ zk_insert_string_with_selection(Search_Bar *bar, String_Const_u8 insert_str) {
   }
 
   AssertAlways(0 <= s.min && s.min <= (i64)bar->string.size &&
-                 0 <= s.max && s.max <= (i64)bar->string.size &&
-                 bar->string.str != NULL && bar->string.size >= 0 &&
-                 insert_str.str != NULL && insert_str.size > 0);
+               0 <= s.max && s.max <= (i64)bar->string.size &&
+               bar->string.str != NULL && bar->string.size >= 0 &&
+               insert_str.str != NULL && insert_str.size > 0);
 
   i64 size = (i64)bar->string.size;
   i64 rhs_chars_count = size - s.max;
@@ -854,8 +854,8 @@ SEARCH_generic_input_handling(Application_Links *app, Buffer_ID buffer, User_Inp
 
   String_Const_u8 string = to_writable(in);
   if (in->event.kind == InputEventKind_KeyStroke &&
-        (in->event.key.code == KeyCode_Right || in->event.key.code == KeyCode_Left ||
-           in->event.key.code == KeyCode_Home || in->event.key.code == KeyCode_End)) {
+      (in->event.key.code == KeyCode_Right || in->event.key.code == KeyCode_Left ||
+       in->event.key.code == KeyCode_Home || in->event.key.code == KeyCode_End)) {
     b32 mod_ctl = has_modifier(&in->event.key.modifiers, KeyCode_Control);
     b32 mod_sft = has_modifier(&in->event.key.modifiers, KeyCode_Shift);
 
@@ -909,7 +909,7 @@ SEARCH_generic_input_handling(Application_Links *app, Buffer_ID buffer, User_Inp
 
   }
   else if (match_key_code(in, KeyCode_C) && has_modifier(&in->event.key.modifiers, KeyCode_Control) &&
-             bar->is_selection_active) {
+           bar->is_selection_active) {
     i32 clipboard_index = 0;
     String_Const_u8 clipboard_string = string_substring(bar->string,  get_selection_range(bar));
     clipboard_post(clipboard_index, clipboard_string);
@@ -1039,7 +1039,7 @@ zk_isearch(Application_Links *app, Scan_Direction scan, i64 first_pos, String_Co
   User_Input in = {};
   for (;;){
     bar.prompt = (scan == Scan_Forward ?
-                    string_u8_litexpr("I-Search: ") :
+                  string_u8_litexpr("I-Search: ") :
                   string_u8_litexpr("Reverse-I-Search: "));
     isearch__update_highlight(app, view, match_range);
     zk_view_set_highlight_range(app, view, { all_matches, match_idx });
